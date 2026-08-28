@@ -1,0 +1,39 @@
+{
+  "id": "cyberpunk-red-character-creator",
+  "title": "Cyberpunk RED AI Character Creator (Streetrat & Edgerunner)",
+  "description": "AI-assisted character creation wizard for Cyberpunk RED. Features official Streetrat templates, Edgerunner packages, dynamic Lifepath generation, AI backstory weaving, and 1-click Foundry Actor generation.",
+  "version": "1.0.0",
+  "compatibility": {
+    "minimum": "12",
+    "verified": "12"
+  },
+  "authors": [
+    {
+      "name": "NomadicBits"
+    }
+  ],
+  "relationships": {
+    "systems": [
+      {
+        "id": "cyberpunk-red-core",
+        "type": "system",
+        "compatibility": {
+          "minimum": "0.90.0"
+        }
+      }
+    ]
+  },
+  "esmodules": [
+    "scripts/main.js"
+  ],
+  "styles": [
+    "styles/cpr-chargen.css"
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
+  ]
+}

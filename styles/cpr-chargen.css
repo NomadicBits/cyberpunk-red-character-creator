@@ -1,0 +1,328 @@
+/* Cyberpunk RED Character Creator Neon HUD Theme */
+
+.cpr-chargen-window .window-content {
+  background: #0f1015;
+  color: #e0e6ed;
+  font-family: 'Rajdhani', 'Segoe UI', Tahoma, sans-serif;
+  padding: 12px;
+  border: 1px solid #ff003c;
+  box-shadow: 0 0 15px rgba(255, 0, 60, 0.3);
+}
+
+.cpr-chargen-header {
+  border-bottom: 2px solid #ff003c;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cpr-chargen-header .glitch-title {
+  color: #ff003c;
+  font-size: 1.3rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin: 0;
+  text-shadow: 0 0 8px rgba(255, 0, 60, 0.5);
+}
+
+.cpr-chargen-header .subtitle {
+  color: #00f0ff;
+  font-size: 0.8rem;
+  margin: 0;
+  letter-spacing: 0.8px;
+}
+
+.mode-toggle {
+  gap: 8px;
+}
+
+.mode-btn {
+  background: #1a1c23;
+  border: 1px solid #444;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: bold;
+  color: #888;
+}
+
+.mode-btn input {
+  display: none;
+}
+
+.mode-btn.active {
+  background: #ff003c;
+  color: #fff;
+  border-color: #ff003c;
+  box-shadow: 0 0 10px rgba(255, 0, 60, 0.6);
+}
+
+/* AI Concept Bar */
+.cpr-ai-concept-bar {
+  background: #141721;
+  border: 1px solid #00f0ff;
+  padding: 8px;
+  margin-bottom: 12px;
+  border-radius: 4px;
+  gap: 8px;
+}
+
+.cpr-ai-concept-bar .concept-input {
+  flex: 1;
+  background: #08090d;
+  color: #00f0ff;
+  border: 1px solid #333;
+  padding: 6px 10px;
+  border-radius: 3px;
+}
+
+.cpr-ai-concept-bar .btn-ai-synthesize {
+  background: linear-gradient(135deg, #00f0ff 0%, #0077aa 100%);
+  color: #000;
+  font-weight: bold;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.cpr-ai-concept-bar .btn-ai-synthesize:hover {
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.8);
+}
+
+/* Tabs */
+.cpr-tabs {
+  border-bottom: 1px solid #333;
+  margin-bottom: 12px;
+}
+
+.cpr-tabs .item {
+  color: #888;
+  padding: 6px 14px;
+  border-bottom: 2px solid transparent;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+}
+
+.cpr-tabs .item.active {
+  color: #00f0ff;
+  border-bottom-color: #00f0ff;
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.5);
+}
+
+/* Roles Grid */
+.roles-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.role-card {
+  background: #151822;
+  border: 1px solid #2a2e3d;
+  padding: 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.role-card:hover {
+  border-color: #00f0ff;
+  background: #1c2130;
+}
+
+.role-card.selected {
+  border-color: #ff003c;
+  background: #2b111a;
+  box-shadow: 0 0 10px rgba(255, 0, 60, 0.4);
+}
+
+.role-card h3 {
+  margin: 0;
+  color: #ff003c;
+  font-size: 1.1rem;
+}
+
+.role-card .role-ability {
+  font-size: 0.75rem;
+  color: #ffe600;
+  font-weight: bold;
+}
+
+.role-card p {
+  font-size: 0.8rem;
+  color: #aaa;
+  margin: 4px 0 0 0;
+}
+
+/* Stats Matrix */
+.stat-template-selector {
+  background: #141721;
+  padding: 8px;
+  border: 1px solid #333;
+  margin-bottom: 12px;
+  align-items: center;
+  gap: 8px;
+}
+
+.stat-select {
+  flex: 1;
+  background: #08090d;
+  color: #fff;
+  border: 1px solid #444;
+  padding: 4px;
+}
+
+.btn-roll-stats, .btn-roll-lifepath, .btn-ai-weave-bio {
+  background: #222634;
+  color: #00f0ff;
+  border: 1px solid #00f0ff;
+  padding: 4px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.stats-matrix {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.stat-box {
+  background: #151822;
+  border: 1px solid #333;
+  padding: 10px;
+  text-align: center;
+  border-radius: 4px;
+}
+
+.stat-box span {
+  display: block;
+  font-size: 0.75rem;
+  color: #888;
+  font-weight: bold;
+}
+
+.stat-box strong {
+  display: block;
+  font-size: 1.4rem;
+  color: #ff003c;
+  margin-top: 4px;
+}
+
+.derived-stats-bar {
+  background: #1b1e2a;
+  border: 1px solid #444;
+  padding: 8px;
+  border-radius: 4px;
+  justify-content: space-around;
+}
+
+.derived-badge {
+  font-size: 0.85rem;
+  color: #ddd;
+}
+
+.derived-badge strong {
+  color: #00f0ff;
+}
+
+/* Gear & Lifepath */
+.gear-overview-grid {
+  gap: 16px;
+}
+
+.gear-column {
+  flex: 1;
+  background: #141721;
+  padding: 10px;
+  border: 1px solid #2a2e3d;
+  border-radius: 4px;
+}
+
+.gear-column h3 {
+  color: #00f0ff;
+  font-size: 0.95rem;
+  border-bottom: 1px solid #333;
+  padding-bottom: 4px;
+  margin-top: 0;
+}
+
+.gear-column ul {
+  padding-left: 16px;
+  margin: 0;
+  font-size: 0.85rem;
+  color: #ccc;
+}
+
+.lifepath-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.lifepath-item label {
+  font-size: 0.75rem;
+  color: #00f0ff;
+  font-weight: bold;
+}
+
+.lifepath-item input {
+  width: 100%;
+  background: #08090d;
+  color: #fff;
+  border: 1px solid #333;
+  padding: 4px;
+  border-radius: 3px;
+}
+
+.backstory-box textarea {
+  width: 100%;
+  background: #08090d;
+  color: #e0e0e0;
+  border: 1px solid #444;
+  padding: 8px;
+  border-radius: 4px;
+  font-family: inherit;
+}
+
+/* Footer */
+.cpr-chargen-footer {
+  border-top: 1px solid #333;
+  padding-top: 12px;
+  margin-top: 12px;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.btn-create-actor {
+  background: linear-gradient(135deg, #ff003c 0%, #990022 100%);
+  color: #fff;
+  font-weight: bold;
+  border: 1px solid #ff003c;
+  padding: 8px 18px;
+  border-radius: 4px;
+  cursor: pointer;
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 0 12px rgba(255, 0, 60, 0.4);
+}
+
+.btn-cancel {
+  background: #222;
+  color: #888;
+  border: 1px solid #444;
+  padding: 8px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+}
