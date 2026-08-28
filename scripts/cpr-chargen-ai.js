@@ -34,18 +34,20 @@ function extractJson(text) {
   throw new Error("Failed to parse AI-generated character JSON.");
 }
 
+import { CONFIG } from "./config.js";
+
 export class CPRCharGenAI {
   static getApiUrl() {
-    const url = game.settings.get("cyberpunk-red-character-creator", "apiUrl") || "http://localhost:8000/v1";
+    const url = game.settings.get("cyberpunk-red-character-creator", "apiUrl") || CONFIG.apiUrl || "http://localhost:8000/v1";
     return url.replace(/\/+$/, "");
   }
 
   static getModel() {
-    return game.settings.get("cyberpunk-red-character-creator", "model") || "nvidia/Llama-3.3-70B-Instruct-NVFP4";
+    return game.settings.get("cyberpunk-red-character-creator", "model") || CONFIG.model || "nvidia/Llama-3.3-70B-Instruct-NVFP4";
   }
 
   static getApiKey() {
-    return game.settings.get("cyberpunk-red-character-creator", "apiKey") || "vllm";
+    return game.settings.get("cyberpunk-red-character-creator", "apiKey") || CONFIG.apiKey || "vllm";
   }
 
   static async complete(messages, options = {}) {

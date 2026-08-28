@@ -3,20 +3,21 @@
  */
 
 import { CPRCharGenWizard } from "./cpr-chargen-wizard.js";
+import { CONFIG } from "./config.js";
 
 const MODULE_ID = "cyberpunk-red-character-creator";
 
 Hooks.once("init", () => {
   console.log("CPR CharGen | Initializing Cyberpunk RED AI Character Creator...");
 
-  // Register Settings
+  // Register Settings (Prefilled with CONFIG if local env exists)
   game.settings.register(MODULE_ID, "apiUrl", {
     name: "vLLM / OpenAI API Endpoint",
     hint: "Base URL for the OpenAI-compatible vLLM inference server (e.g. http://localhost:8000/v1 or internal host IP).",
     scope: "world",
     config: true,
     type: String,
-    default: "http://localhost:8000/v1"
+    default: CONFIG.apiUrl || "http://localhost:8000/v1"
   });
 
   game.settings.register(MODULE_ID, "model", {
@@ -25,7 +26,16 @@ Hooks.once("init", () => {
     scope: "world",
     config: true,
     type: String,
-    default: "nvidia/Llama-3.3-70B-Instruct-NVFP4"
+    default: CONFIG.model || "nvidia/Llama-3.3-70B-Instruct-NVFP4"
+  });
+
+  game.settings.register(MODULE_ID, "apiKey", {
+    name: "API Key",
+    hint: "Optional API Key for authentication (defaults to 'vllm').",
+    scope: "world",
+    config: true,
+    type: String,
+    default: CONFIG.apiKey || "vllm"
   });
 
   // Handlebars Helper for Math

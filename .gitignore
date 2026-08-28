@@ -1,0 +1,8 @@
+# Local Environment & Secrets
+scripts/config.local.js
+*.local.js
+.env
+.env.local
+*.local.json
+.DS_Store
+*.zip
