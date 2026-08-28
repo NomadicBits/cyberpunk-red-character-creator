@@ -27,6 +27,10 @@ export class CPRCharGenActor {
       name: charData.name || "Night City Edge",
       type: "character",
       img: charData.img || "icons/svg/mystery-man.svg",
+      ownership: {
+        default: 0,
+        [game.user.id]: 3
+      },
       system: {
         stats: {
           int: { value: stats.int },
