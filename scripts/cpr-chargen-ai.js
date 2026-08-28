@@ -57,8 +57,8 @@ export class CPRCharGenAI {
 
     const isHttps = typeof window !== "undefined" && window.location.protocol === "https:";
     const urlsToTry = isHttps
-      ? ["https://192.168.1.200/v1", rawUrl]
-      : [rawUrl, "http://192.168.1.200/v1", "http://192.168.1.200:8000/v1"];
+      ? [rawUrl]
+      : [rawUrl, "http://localhost:8000/v1"];
 
     const payload = {
       model: options.model || model,

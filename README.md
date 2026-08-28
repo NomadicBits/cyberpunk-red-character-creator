@@ -45,8 +45,8 @@ This module features a **Local Variable System** that allows you to prefill your
 3. Edit `config.local.js` with your private network settings:
    ```javascript
    export const LOCAL_CONFIG = {
-     // Your private LAN IP or internal inference URL
-     apiUrl: "http://192.168.1.200/v1",
+     // Your private LAN IP or internal inference URL (e.g. http://127.0.0.1:8000/v1)
+     apiUrl: "http://localhost:8000/v1",
 
      // Model identifier served by your LLM backend
      model: "nvidia/Llama-3.3-70B-Instruct-NVFP4",

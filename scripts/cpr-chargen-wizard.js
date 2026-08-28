@@ -239,11 +239,29 @@ export class CPRCharGenWizard extends FormApplication {
     const roleDef = CPR_ROLES[this.charData.selectedRole] || CPR_ROLES.solo;
     const stats = roleDef.statTemplates[this.charData.selectedTemplateIndex] || roleDef.statTemplates[0];
 
+    // Collect Chosen Weapons & Cyberware
+    const chosenWeapons = [];
+    const chosenCyberware = [...(roleDef.baseCyberware || [])];
+
+    for (const [k, v] of Object.entries(formData)) {
+      if (k.startsWith("weaponChoice_") && v) {
+        chosenWeapons.push(v);
+      }
+      if (k.startsWith("cyberwareChoice_") && v) {
+        chosenCyberware.push(v);
+      }
+    }
+
     const finalCharacter = {
       name: formData.charName || this.charData.charName || "Night City Edge",
       role: this.charData.selectedRole,
       stats: stats,
       skills: this.charData.skills || roleDef.skills,
+      chosenWeapons: chosenWeapons,
+      chosenCyberware: chosenCyberware,
+      chosenVehicle: formData.vehicleChoice_nomadVehicle,
+      chosenPerk: formData.corpPerkChoice_execPerk,
+      chosenInstrument: formData.instrumentChoice_rockerInstrument,
       lifepath: {
         culturalOrigin: formData.lp_culturalOrigin,
         personality: formData.lp_personality,

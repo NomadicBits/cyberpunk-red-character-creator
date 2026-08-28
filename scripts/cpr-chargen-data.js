@@ -1,6 +1,7 @@
 /**
  * Cyberpunk RED Character Creation Rules & Compendium Data
  * Official Streetrat & Edgerunner Stat Arrays, Skills, Gear, and Lifepath Tables
+ * Updated with official Cyberpunk RED Core Rulebook (p. 97-108) loadouts and choices
  */
 
 export const CPR_ROLES = {
@@ -9,16 +10,16 @@ export const CPR_ROLES = {
     ability: "Combat Awareness",
     tagline: "Hired muscle, bodyguard, and tactical assassin",
     statTemplates: [
-      { int: 6, ref: 8, dex: 8, tech: 3, cool: 6, will: 7, luck: 6, move: 6, body: 8, emp: 4 }, // 1
-      { int: 5, ref: 8, dex: 8, tech: 4, cool: 7, will: 6, luck: 6, move: 7, body: 7, emp: 4 }, // 2
-      { int: 7, ref: 8, dex: 7, tech: 2, cool: 7, will: 7, luck: 5, move: 6, body: 8, emp: 5 }, // 3
-      { int: 6, ref: 8, dex: 7, tech: 3, cool: 8, will: 6, luck: 6, move: 6, body: 8, emp: 4 }, // 4
-      { int: 5, ref: 8, dex: 8, tech: 4, cool: 6, will: 8, luck: 5, move: 6, body: 8, emp: 4 }, // 5
-      { int: 6, ref: 8, dex: 8, tech: 2, cool: 7, will: 6, luck: 7, move: 7, body: 7, emp: 4 }, // 6
-      { int: 7, ref: 8, dex: 8, tech: 3, cool: 6, will: 6, luck: 6, move: 6, body: 7, emp: 5 }, // 7
-      { int: 5, ref: 8, dex: 7, tech: 4, cool: 7, will: 7, luck: 6, move: 7, body: 8, emp: 3 }, // 8
-      { int: 6, ref: 8, dex: 8, tech: 3, cool: 6, will: 7, luck: 5, move: 7, body: 8, emp: 4 }, // 9
-      { int: 6, ref: 8, dex: 8, tech: 3, cool: 7, will: 7, luck: 6, move: 6, body: 7, emp: 4 }  // 10
+      { int: 6, ref: 8, dex: 8, tech: 3, cool: 6, will: 7, luck: 6, move: 6, body: 8, emp: 4 },
+      { int: 5, ref: 8, dex: 8, tech: 4, cool: 7, will: 6, luck: 6, move: 7, body: 7, emp: 4 },
+      { int: 7, ref: 8, dex: 7, tech: 2, cool: 7, will: 7, luck: 5, move: 6, body: 8, emp: 5 },
+      { int: 6, ref: 8, dex: 7, tech: 3, cool: 8, will: 6, luck: 6, move: 6, body: 8, emp: 4 },
+      { int: 5, ref: 8, dex: 8, tech: 4, cool: 6, will: 8, luck: 5, move: 6, body: 8, emp: 4 },
+      { int: 6, ref: 8, dex: 8, tech: 2, cool: 7, will: 6, luck: 7, move: 7, body: 7, emp: 4 },
+      { int: 7, ref: 8, dex: 8, tech: 3, cool: 6, will: 6, luck: 6, move: 6, body: 7, emp: 5 },
+      { int: 5, ref: 8, dex: 7, tech: 4, cool: 7, will: 7, luck: 6, move: 7, body: 8, emp: 3 },
+      { int: 6, ref: 8, dex: 8, tech: 3, cool: 6, will: 7, luck: 5, move: 7, body: 8, emp: 4 },
+      { int: 6, ref: 8, dex: 8, tech: 3, cool: 7, will: 7, luck: 6, move: 6, body: 7, emp: 4 }
     ],
     skills: {
       athletics: 2, brawling: 6, concentration: 2, conversation: 2, education: 2,
@@ -27,11 +28,18 @@ export const CPR_ROLES = {
       autofire: 6, handgun: 6, shoulderArms: 6, meleeWeapon: 6, resistTortureDrugs: 4,
       tactics: 4
     },
-    weapons: ["Assault Rifle", "Very Heavy Pistol", "Heavy Melee Weapon"],
+    weaponChoices: [
+      { id: "primaryWeapon", label: "Primary Longarm", options: ["Assault Rifle", "Shotgun", "Heavy SMG"] },
+      { id: "secondaryWeapon", label: "Secondary Weapon", options: ["Very Heavy Pistol", "Heavy Melee Weapon"] }
+    ],
+    cyberwareChoices: [
+      { id: "soloOpticOrArmor", label: "Combat Augmentation", options: ["Cybereye (Targeting Scope)", "Subdermal Armor", "Wolvers (Melee Cyberware)"] }
+    ],
+    baseCyberware: ["Neural Link", "Interface Plugs"],
     armor: "Light Armorjack (Head & Body SP 11)",
-    cyberware: ["Neural Link", "Interface Plugs", "Subdermal Armor", "Cybereye (Targeting Scope)"],
-    gear: ["Agent", "Light Armorjack Body", "Light Armorjack Head", "Ammo (Rifle x50)", "Ammo (Very Heavy x30)", "Basic Medtech Kit", "Eurodollars (500 eb)"]
+    gear: ["Agent", "Light Armorjack Body", "Light Armorjack Head", "Basic Medtech Kit", "Ammo (Basic x50)", "Eurodollars (500 eb)"]
   },
+
   netrunner: {
     name: "Netrunner",
     ability: "Interface",
@@ -55,227 +63,295 @@ export const CPR_ROLES = {
       handgun: 6, cybertech: 6, electronicsSecurity: 6, cryptography: 6,
       librarySearch: 6, basicTech: 4
     },
-    weapons: ["Heavy Pistol"],
+    weaponChoices: [
+      { id: "primaryWeapon", label: "Sidearm", options: ["Heavy Pistol", "Very Heavy Pistol", "SMG"] }
+    ],
+    cyberwareChoices: [
+      { id: "netVisual", label: "Virtuality Interface", options: ["Virtuality Goggles (Gear)", "Virtuality (Cyberware Cybereye)", "Chyron (Subdermal Display)"] }
+    ],
+    baseCyberware: ["Neural Link", "Interface Plugs"],
     armor: "Light Armorjack (Head & Body SP 11)",
-    cyberware: ["Neural Link", "Interface Plugs", "Virtuality", "Cybereye (Chyron)"],
-    gear: ["Cyberdeck (Standard)", "Program: Sword", "Program: Eraser", "Program: Worm", "Program: Armor", "Agent", "Light Armorjack Body", "Light Armorjack Head", "Ammo (Heavy x30)", "Eurodollars (500 eb)"]
+    deckPrograms: ["Sword", "Armor", "Eraser", "SeeYa", "Wurm", "Speedbrk"],
+    gear: ["Standard Quality Cyberdeck", "Cables", "Agent", "Light Armorjack Body", "Light Armorjack Head", "Ammo (Pistol x30)", "Eurodollars (500 eb)"]
   },
+
   tech: {
     name: "Tech",
     ability: "Maker",
-    tagline: "Master engineer, inventor, weapon modder, and field mechanic",
+    tagline: "Renegade mechanic, inventor, and combat fabricator",
     statTemplates: [
       { int: 7, ref: 6, dex: 7, tech: 8, cool: 6, will: 6, luck: 6, move: 6, body: 6, emp: 4 },
-      { int: 8, ref: 6, dex: 7, tech: 8, cool: 5, will: 6, luck: 7, move: 5, body: 6, emp: 4 },
-      { int: 6, ref: 7, dex: 7, tech: 8, cool: 6, will: 7, luck: 6, move: 6, body: 5, emp: 4 },
-      { int: 7, ref: 6, dex: 8, tech: 8, cool: 6, will: 6, luck: 5, move: 6, body: 6, emp: 4 },
+      { int: 6, ref: 7, dex: 7, tech: 8, cool: 5, will: 7, luck: 6, move: 6, body: 6, emp: 4 },
+      { int: 7, ref: 7, dex: 6, tech: 8, cool: 6, will: 6, luck: 5, move: 7, body: 5, emp: 5 },
+      { int: 8, ref: 6, dex: 6, tech: 8, cool: 6, will: 6, luck: 7, move: 6, body: 5, emp: 4 },
+      { int: 6, ref: 6, dex: 8, tech: 8, cool: 7, will: 6, luck: 6, move: 5, body: 6, emp: 4 },
+      { int: 7, ref: 8, dex: 6, tech: 8, cool: 5, will: 6, luck: 6, move: 6, body: 6, emp: 4 },
+      { int: 6, ref: 7, dex: 7, tech: 8, cool: 6, will: 6, luck: 6, move: 7, body: 5, emp: 5 },
+      { int: 7, ref: 6, dex: 7, tech: 8, cool: 6, will: 7, luck: 5, move: 6, body: 6, emp: 4 },
       { int: 8, ref: 7, dex: 6, tech: 8, cool: 5, will: 6, luck: 6, move: 6, body: 6, emp: 4 },
-      { int: 7, ref: 7, dex: 7, tech: 8, cool: 6, will: 6, luck: 6, move: 6, body: 5, emp: 4 },
-      { int: 6, ref: 6, dex: 8, tech: 8, cool: 7, will: 6, luck: 6, move: 6, body: 5, emp: 4 },
-      { int: 8, ref: 6, dex: 6, tech: 8, cool: 6, will: 7, luck: 6, move: 5, body: 6, emp: 4 },
-      { int: 7, ref: 7, dex: 6, tech: 8, cool: 6, will: 6, luck: 7, move: 6, body: 5, emp: 4 },
-      { int: 7, ref: 6, dex: 7, tech: 8, cool: 6, will: 7, luck: 5, move: 6, body: 6, emp: 4 }
+      { int: 6, ref: 7, dex: 8, tech: 8, cool: 6, will: 6, luck: 6, move: 6, body: 5, emp: 4 }
     ],
     skills: {
       athletics: 2, brawling: 2, concentration: 4, conversation: 2, education: 4,
-      evasion: 6, firstAid: 4, humanPerception: 2, languageStreetslang: 4,
-      localExpertYourHome: 2, perception: 4, persuasion: 2, stealth: 2,
-      shoulderArms: 6, basicTech: 6, cybertech: 6, electronicsSecurity: 6,
-      weaponstech: 6, landVehicleTech: 6
+      evasion: 6, firstAid: 6, humanPerception: 2, languageStreetslang: 4,
+      localExpertYourHome: 2, perception: 4, persuasion: 2, stealth: 4,
+      basicTech: 6, cybertech: 6, weaponstech: 6, electronicsSecurity: 6,
+      shoulderArms: 6, landVehicleTech: 4
     },
-    weapons: ["Shotgun", "Heavy Pistol"],
+    weaponChoices: [
+      { id: "primaryWeapon", label: "Primary Weapon", options: ["Shotgun", "Assault Rifle"] },
+      { id: "secondaryWeapon", label: "Sidearm", options: ["Heavy Pistol", "Light Melee Weapon"] }
+    ],
+    cyberwareChoices: [
+      { id: "techMod", label: "Tech Augmentation", options: ["Cybereye (Micro-Optics)", "Tool Hand (Cyberarm)", "Techhair"] }
+    ],
+    baseCyberware: [],
     armor: "Light Armorjack (Head & Body SP 11)",
-    cyberware: ["Neural Link", "Interface Plugs", "Tool Hand", "Cybereye (Micro-Optics)"],
-    gear: ["Tech Toolkit", "Electronics Toolkit", "Agent", "Ammo (Shotgun Slug x20)", "Ammo (Heavy x30)", "Eurodollars (500 eb)"]
+    gear: ["Tech Tool Kit", "Techscanner", "Duct Tape & Wire", "Agent", "Light Armorjack Body", "Light Armorjack Head", "Eurodollars (500 eb)"]
   },
+
   medtech: {
     name: "Medtech",
     ability: "Medicine",
-    tagline: "Street doc, trauma surgeon, and pharmaceutical synthesizer",
+    tagline: "Street doctor, combat surgeon, and cyber-ripdoc",
     statTemplates: [
-      { int: 8, ref: 6, dex: 7, tech: 7, cool: 6, will: 6, luck: 6, move: 6, body: 6, emp: 4 },
-      { int: 7, ref: 7, dex: 6, tech: 8, cool: 6, will: 7, luck: 5, move: 6, body: 6, emp: 4 },
-      { int: 8, ref: 6, dex: 6, tech: 7, cool: 7, will: 6, luck: 6, move: 6, body: 5, emp: 5 },
-      { int: 8, ref: 7, dex: 7, tech: 7, cool: 5, will: 6, luck: 6, move: 6, body: 6, emp: 4 },
-      { int: 7, ref: 6, dex: 7, tech: 8, cool: 6, will: 6, luck: 7, move: 5, body: 6, emp: 4 },
-      { int: 8, ref: 6, dex: 7, tech: 8, cool: 6, will: 6, luck: 5, move: 6, body: 5, emp: 5 },
-      { int: 7, ref: 7, dex: 7, tech: 7, cool: 6, will: 7, luck: 6, move: 6, body: 5, emp: 4 },
-      { int: 8, ref: 6, dex: 6, tech: 8, cool: 6, will: 7, luck: 6, move: 6, body: 5, emp: 4 },
-      { int: 8, ref: 7, dex: 6, tech: 7, cool: 5, will: 6, luck: 7, move: 6, body: 6, emp: 4 },
-      { int: 7, ref: 6, dex: 7, tech: 8, cool: 6, will: 6, luck: 6, move: 6, body: 6, emp: 4 }
+      { int: 8, ref: 6, dex: 7, tech: 7, cool: 6, will: 7, luck: 5, move: 6, body: 6, emp: 4 },
+      { int: 7, ref: 7, dex: 6, tech: 8, cool: 6, will: 6, luck: 6, move: 6, body: 6, emp: 4 },
+      { int: 8, ref: 7, dex: 6, tech: 7, cool: 6, will: 6, luck: 6, move: 7, body: 5, emp: 5 },
+      { int: 7, ref: 6, dex: 7, tech: 8, cool: 5, will: 7, luck: 6, move: 6, body: 6, emp: 4 },
+      { int: 8, ref: 6, dex: 7, tech: 7, cool: 7, will: 6, luck: 5, move: 6, body: 6, emp: 4 },
+      { int: 7, ref: 7, dex: 7, tech: 8, cool: 6, will: 6, luck: 6, move: 5, body: 6, emp: 4 },
+      { int: 8, ref: 7, dex: 6, tech: 7, cool: 5, will: 7, luck: 6, move: 6, body: 5, emp: 5 },
+      { int: 6, ref: 7, dex: 7, tech: 8, cool: 6, will: 7, luck: 6, move: 6, body: 5, emp: 4 },
+      { int: 7, ref: 6, dex: 8, tech: 8, cool: 6, will: 6, luck: 6, move: 6, body: 5, emp: 4 },
+      { int: 8, ref: 7, dex: 7, tech: 7, cool: 6, will: 6, luck: 5, move: 6, body: 6, emp: 4 }
     ],
     skills: {
-      athletics: 2, brawling: 2, concentration: 4, conversation: 4, education: 4,
+      athletics: 2, brawling: 2, concentration: 4, conversation: 4, education: 6,
       evasion: 6, firstAid: 6, humanPerception: 4, languageStreetslang: 4,
-      localExpertYourHome: 2, perception: 4, persuasion: 2, stealth: 2,
-      handgun: 6, paramedic: 6, surgery: 6, scienceMedical: 6, cybertech: 6
+      localExpertYourHome: 2, perception: 6, persuasion: 2, stealth: 2,
+      paramedic: 6, cybertech: 6, basicTech: 4, shoulderArms: 6, diagnoseInjury: 6
     },
-    weapons: ["Heavy Pistol"],
+    weaponChoices: [
+      { id: "primaryWeapon", label: "Primary Weapon", options: ["Shotgun", "Assault Rifle"] },
+      { id: "secondaryWeapon", label: "Sidearm", options: ["Heavy Pistol", "Cryo-Spray Injector"] }
+    ],
+    cyberwareChoices: [
+      { id: "medOptic", label: "Medical Diagnostics", options: ["Cybereye (Micro-Optics)", "Cybereye (Tele-Optics)", "Biomonitor"] }
+    ],
+    baseCyberware: [],
     armor: "Light Armorjack (Head & Body SP 11)",
-    cyberware: ["Medscanner Implant", "Cybereye (Low-Light)", "Biomonitor"],
-    gear: ["Medtech Bag", "Cryopump", "Speedheal Doses x3", "Antibiotics x2", "Agent", "Ammo (Heavy x30)", "Eurodollars (500 eb)"]
+    gear: ["Medtech Bag", "Cryopump Bag", "Trauma Dermal Patches (x3)", "Agent", "Light Armorjack Body", "Light Armorjack Head", "Eurodollars (500 eb)"]
   },
+
   fixer: {
     name: "Fixer",
     ability: "Operator",
-    tagline: "Street broker, smuggler, dealmaker, and Night City insider",
+    tagline: "Dealmaker, smuggler, info-broker, and street broker",
     statTemplates: [
-      { int: 7, ref: 6, dex: 6, tech: 4, cool: 8, will: 6, luck: 7, move: 6, body: 5, emp: 7 },
-      { int: 6, ref: 7, dex: 6, tech: 4, cool: 8, will: 7, luck: 6, move: 6, body: 5, emp: 7 },
-      { int: 7, ref: 6, dex: 7, tech: 3, cool: 8, will: 6, luck: 6, move: 7, body: 5, emp: 7 },
-      { int: 6, ref: 6, dex: 7, tech: 4, cool: 8, will: 7, luck: 7, move: 6, body: 4, emp: 7 },
-      { int: 7, ref: 7, dex: 6, tech: 4, cool: 8, will: 6, luck: 6, move: 6, body: 6, emp: 6 },
-      { int: 6, ref: 6, dex: 6, tech: 5, cool: 8, will: 7, luck: 6, move: 6, body: 5, emp: 7 },
-      { int: 7, ref: 7, dex: 6, tech: 3, cool: 8, will: 6, luck: 7, move: 6, body: 5, emp: 7 },
-      { int: 6, ref: 6, dex: 7, tech: 4, cool: 8, will: 6, luck: 8, move: 6, body: 4, emp: 7 },
-      { int: 7, ref: 6, dex: 6, tech: 4, cool: 8, will: 7, luck: 6, move: 6, body: 5, emp: 7 },
-      { int: 7, ref: 6, dex: 7, tech: 4, cool: 8, will: 6, luck: 6, move: 6, body: 5, emp: 7 }
+      { int: 7, ref: 6, dex: 6, tech: 4, cool: 8, will: 7, luck: 7, move: 6, body: 5, emp: 6 },
+      { int: 6, ref: 7, dex: 6, tech: 4, cool: 8, will: 6, luck: 7, move: 7, body: 5, emp: 6 },
+      { int: 7, ref: 6, dex: 7, tech: 3, cool: 8, will: 7, luck: 6, move: 6, body: 6, emp: 6 },
+      { int: 6, ref: 6, dex: 7, tech: 5, cool: 8, will: 6, luck: 7, move: 6, body: 5, emp: 6 },
+      { int: 7, ref: 7, dex: 6, tech: 4, cool: 8, will: 6, luck: 6, move: 7, body: 5, emp: 6 },
+      { int: 6, ref: 6, dex: 6, tech: 5, cool: 8, will: 7, luck: 7, move: 6, body: 6, emp: 5 },
+      { int: 7, ref: 7, dex: 6, tech: 3, cool: 8, will: 7, luck: 6, move: 6, body: 5, emp: 7 },
+      { int: 6, ref: 7, dex: 7, tech: 4, cool: 8, will: 6, luck: 6, move: 6, body: 6, emp: 6 },
+      { int: 7, ref: 6, dex: 6, tech: 5, cool: 8, will: 6, luck: 7, move: 6, body: 5, emp: 6 },
+      { int: 6, ref: 6, dex: 7, tech: 4, cool: 8, will: 7, luck: 6, move: 7, body: 5, emp: 6 }
     ],
     skills: {
       athletics: 2, brawling: 2, concentration: 2, conversation: 6, education: 4,
-      evasion: 6, firstAid: 2, humanPerception: 6, languageStreetslang: 4,
+      evasion: 6, firstAid: 2, humanPerception: 6, languageStreetslang: 6,
       localExpertYourHome: 6, perception: 6, persuasion: 6, stealth: 2,
-      handgun: 6, trading: 6, streetwise: 6, bribery: 4, forgery: 4
+      handgun: 6, streetwise: 6, trading: 6, bribery: 6, lipReading: 4
     },
-    weapons: ["Very Heavy Pistol"],
+    weaponChoices: [
+      { id: "primaryWeapon", label: "Concealable Weapon", options: ["Heavy Pistol", "Very Heavy Pistol", "SMG"] }
+    ],
+    cyberwareChoices: [
+      { id: "fixerComm", label: "Street Comms", options: ["Internal Agent (Audio Suite)", "Voice Synthesizer", "Cybereye (Chyron)"] }
+    ],
+    baseCyberware: [],
     armor: "Light Armorjack (Head & Body SP 11)",
-    cyberware: ["AudioVox", "Internal Agent Implant", "Subdermal Pocket"],
-    gear: ["Agent (Deluxe)", "Flashy Clothing", "Concealable Holster", "Ammo (Very Heavy x30)", "Eurodollars (800 eb)"]
+    gear: ["Agent (Flagship Model)", "Disposable Burner Phones (x2)", "Lockpicks", "Light Armorjack Body", "Eurodollars (800 eb)"]
   },
+
   nomad: {
     name: "Nomad",
     ability: "Moto",
-    tagline: "Road warrior, highway convoy convoy driver, and clan scout",
+    tagline: "Outrunner, convoy specialist, and wasteland driver",
     statTemplates: [
-      { int: 6, ref: 8, dex: 7, tech: 6, cool: 6, will: 6, luck: 6, move: 7, body: 7, emp: 3 },
-      { int: 5, ref: 8, dex: 8, tech: 6, cool: 6, will: 7, luck: 5, move: 7, body: 7, emp: 3 },
-      { int: 6, ref: 8, dex: 7, tech: 7, cool: 5, will: 6, luck: 6, move: 7, body: 7, emp: 3 },
-      { int: 6, ref: 8, dex: 8, tech: 5, cool: 7, will: 6, luck: 6, move: 6, body: 7, emp: 3 },
-      { int: 5, ref: 8, dex: 7, tech: 6, cool: 6, will: 7, luck: 6, move: 7, body: 7, emp: 3 },
-      { int: 6, ref: 8, dex: 8, tech: 6, cool: 5, will: 6, luck: 7, move: 7, body: 6, emp: 3 },
-      { int: 6, ref: 8, dex: 7, tech: 6, cool: 6, will: 6, luck: 6, move: 8, body: 7, emp: 2 },
-      { int: 5, ref: 8, dex: 7, tech: 7, cool: 6, will: 6, luck: 6, move: 7, body: 7, emp: 3 },
-      { int: 6, ref: 8, dex: 8, tech: 6, cool: 6, will: 6, luck: 5, move: 7, body: 7, emp: 3 },
-      { int: 6, ref: 8, dex: 7, tech: 6, cool: 6, will: 7, luck: 6, move: 6, body: 7, emp: 3 }
+      { int: 6, ref: 8, dex: 7, tech: 6, cool: 6, will: 7, luck: 6, move: 7, body: 7, emp: 4 },
+      { int: 5, ref: 8, dex: 8, tech: 6, cool: 6, will: 6, luck: 6, move: 7, body: 7, emp: 4 },
+      { int: 6, ref: 7, dex: 7, tech: 7, cool: 6, will: 7, luck: 6, move: 6, body: 8, emp: 4 },
+      { int: 6, ref: 8, dex: 6, tech: 7, cool: 6, will: 6, luck: 7, move: 7, body: 7, emp: 4 },
+      { int: 5, ref: 7, dex: 8, tech: 6, cool: 7, will: 6, luck: 6, move: 7, body: 8, emp: 3 },
+      { int: 6, ref: 8, dex: 7, tech: 5, cool: 7, will: 6, luck: 6, move: 6, body: 8, emp: 4 },
+      { int: 7, ref: 7, dex: 7, tech: 6, cool: 6, will: 6, luck: 6, move: 7, body: 7, emp: 5 },
+      { int: 5, ref: 8, dex: 7, tech: 7, cool: 6, will: 7, luck: 6, move: 6, body: 8, emp: 3 },
+      { int: 6, ref: 7, dex: 8, tech: 6, cool: 6, will: 7, luck: 5, move: 7, body: 7, emp: 5 },
+      { int: 6, ref: 8, dex: 7, tech: 6, cool: 6, will: 6, luck: 6, move: 7, body: 8, emp: 4 }
     ],
     skills: {
       athletics: 4, brawling: 4, concentration: 2, conversation: 2, education: 2,
       evasion: 6, firstAid: 4, humanPerception: 2, languageStreetslang: 4,
       localExpertYourHome: 4, perception: 6, persuasion: 2, stealth: 4,
-      shoulderArms: 6, driveLandVehicle: 6, landVehicleTech: 6, navigation: 4, wildernessSurvival: 6
+      driveLandVehicle: 6, shoulderArms: 6, handgun: 6, landVehicleTech: 6,
+      wildernessSurvival: 6, animalHandling: 2
     },
-    weapons: ["Assault Rifle", "Heavy Pistol"],
+    weaponChoices: [
+      { id: "primaryWeapon", label: "Primary Longarm", options: ["Assault Rifle", "Shotgun", "Sniper Rifle"] },
+      { id: "secondaryWeapon", label: "Sidearm", options: ["Heavy Pistol", "Heavy Melee Weapon"] }
+    ],
+    vehicleChoices: [
+      { id: "nomadVehicle", label: "Moto Clan Vehicle", options: ["Compact Car (Sedan)", "Road Motorcycle", "Off-Road Bike", "Gyrocopter Chassis"] }
+    ],
+    cyberwareChoices: [
+      { id: "nomadLink", label: "Vehicle Interface", options: ["Interface Plugs & Neural Link", "Cybereye (Tele-Optics)", "Subdermal Armor"] }
+    ],
+    baseCyberware: [],
     armor: "Light Armorjack (Head & Body SP 11)",
-    cyberware: ["Neural Link", "Interface Plugs", "Cybereye (Targeting Scope)"],
-    gear: ["Nomad Clan Vehicle (Compact or Bike via Moto 4)", "Field Repair Toolkit", "Sleeping Bag", "Agent", "Ammo (Rifle x50)", "Ammo (Heavy x30)", "Eurodollars (500 eb)"]
+    gear: ["Vehicle Tool Kit", "Road Flares (x4)", "Sleeping Bag", "Agent", "Light Armorjack Body", "Light Armorjack Head", "Eurodollars (500 eb)"]
   },
+
   rockerboy: {
     name: "Rockerboy",
     ability: "Charismatic Impact",
-    tagline: "Rebel artist, musical demagogue, and street poet",
+    tagline: "Rebel rocker, poet of the street, and underground icon",
     statTemplates: [
-      { int: 6, ref: 7, dex: 7, tech: 4, cool: 8, will: 7, luck: 6, move: 6, body: 4, emp: 7 },
-      { int: 5, ref: 7, dex: 8, tech: 4, cool: 8, will: 6, luck: 7, move: 6, body: 4, emp: 7 },
-      { int: 6, ref: 8, dex: 7, tech: 3, cool: 8, will: 7, luck: 6, move: 6, body: 4, emp: 7 },
-      { int: 7, ref: 7, dex: 6, tech: 4, cool: 8, will: 6, luck: 6, move: 6, body: 5, emp: 7 },
-      { int: 5, ref: 7, dex: 7, tech: 5, cool: 8, will: 7, luck: 6, move: 6, body: 4, emp: 7 },
-      { int: 6, ref: 7, dex: 8, tech: 3, cool: 8, will: 6, luck: 7, move: 6, body: 4, emp: 7 },
-      { int: 6, ref: 8, dex: 6, tech: 4, cool: 8, will: 7, luck: 6, move: 6, body: 4, emp: 7 },
-      { int: 7, ref: 7, dex: 7, tech: 3, cool: 8, will: 6, luck: 6, move: 6, body: 5, emp: 7 },
-      { int: 5, ref: 7, dex: 7, tech: 4, cool: 8, will: 7, luck: 7, move: 6, body: 4, emp: 7 },
-      { int: 6, ref: 7, dex: 7, tech: 4, cool: 8, will: 6, luck: 6, move: 7, body: 4, emp: 7 }
+      { int: 6, ref: 7, dex: 7, tech: 4, cool: 8, will: 7, luck: 6, move: 6, body: 6, emp: 6 },
+      { int: 5, ref: 7, dex: 8, tech: 3, cool: 8, will: 6, luck: 7, move: 6, body: 6, emp: 6 },
+      { int: 6, ref: 6, dex: 7, tech: 4, cool: 8, will: 7, luck: 6, move: 7, body: 5, emp: 7 },
+      { int: 7, ref: 6, dex: 6, tech: 5, cool: 8, will: 6, luck: 7, move: 6, body: 5, emp: 6 },
+      { int: 5, ref: 8, dex: 7, tech: 4, cool: 8, will: 6, luck: 6, move: 6, body: 6, emp: 6 },
+      { int: 6, ref: 7, dex: 7, tech: 4, cool: 8, will: 7, luck: 5, move: 7, body: 6, emp: 6 },
+      { int: 7, ref: 6, dex: 7, tech: 3, cool: 8, will: 6, luck: 7, move: 6, body: 6, emp: 6 },
+      { int: 6, ref: 7, dex: 6, tech: 4, cool: 8, will: 7, luck: 6, move: 6, body: 6, emp: 6 },
+      { int: 5, ref: 7, dex: 7, tech: 5, cool: 8, will: 6, luck: 6, move: 7, body: 5, emp: 7 },
+      { int: 6, ref: 8, dex: 6, tech: 4, cool: 8, will: 6, luck: 6, move: 6, body: 6, emp: 6 }
     ],
     skills: {
       athletics: 2, brawling: 4, concentration: 2, conversation: 4, education: 2,
       evasion: 6, firstAid: 2, humanPerception: 6, languageStreetslang: 4,
-      localExpertYourHome: 4, perception: 4, persuasion: 6, stealth: 2,
-      handgun: 6, playInstrumentGuitar: 6, composition: 6, streetwise: 6, performance: 6
+      localExpertYourHome: 4, perception: 4, persuasion: 6, stealth: 4,
+      playInstrument: 6, composition: 6, handgun: 6, streetwise: 6, wardrobeStyle: 6
     },
-    weapons: ["Heavy Pistol"],
+    weaponChoices: [
+      { id: "primaryWeapon", label: "Sidearm", options: ["Very Heavy Pistol", "Heavy Pistol", "SMG"] }
+    ],
+    instrumentChoices: [
+      { id: "rockerInstrument", label: "Signature Instrument", options: ["Electric Guitar & Pocket Amp", "Keytar Synthesizer", "Vocal Vocoder Mic", "Electronic Drum Pad"] }
+    ],
+    cyberwareChoices: [
+      { id: "rockerStyle", label: "Style Chrome", options: ["Techhair & Chemskin", "Audio Suite (Cyberaudio)", "Voice Synthesizer"] }
+    ],
+    baseCyberware: [],
     armor: "Light Armorjack (Head & Body SP 11)",
-    cyberware: ["AudioVox", "Chemskin", "Techhair"],
-    gear: ["Electric Guitar / Mic", "Amp Pack", "Agent", "Glamour Wardrobe", "Ammo (Heavy x30)", "Eurodollars (500 eb)"]
+    gear: ["Pocket Amp", "Concert Cables", "Stage Costume", "Agent", "Light Armorjack Body", "Light Armorjack Head", "Eurodollars (500 eb)"]
   },
+
   exec: {
     name: "Exec",
     ability: "Teamwork",
-    tagline: "Corporate operative, suit, and resource administrator",
+    tagline: "Corporate operative, division manager, and suit with firepower",
     statTemplates: [
-      { int: 7, ref: 6, dex: 6, tech: 3, cool: 8, will: 6, luck: 6, move: 6, body: 6, emp: 8 },
-      { int: 8, ref: 6, dex: 6, tech: 3, cool: 8, will: 7, luck: 5, move: 5, body: 6, emp: 8 },
-      { int: 7, ref: 7, dex: 6, tech: 3, cool: 8, will: 6, luck: 6, move: 6, body: 5, emp: 8 },
-      { int: 8, ref: 6, dex: 7, tech: 2, cool: 8, will: 6, luck: 6, move: 6, body: 5, emp: 8 },
-      { int: 7, ref: 6, dex: 6, tech: 4, cool: 8, will: 6, luck: 7, move: 6, body: 5, emp: 7 },
-      { int: 8, ref: 7, dex: 6, tech: 3, cool: 8, will: 6, luck: 5, move: 6, body: 5, emp: 8 },
-      { int: 7, ref: 6, dex: 7, tech: 3, cool: 8, will: 7, luck: 6, move: 5, body: 5, emp: 8 },
+      { int: 7, ref: 6, dex: 6, tech: 4, cool: 8, will: 7, luck: 6, move: 6, body: 6, emp: 6 },
       { int: 8, ref: 6, dex: 6, tech: 3, cool: 8, will: 6, luck: 6, move: 6, body: 6, emp: 7 },
-      { int: 7, ref: 7, dex: 6, tech: 3, cool: 8, will: 6, luck: 6, move: 6, body: 6, emp: 7 },
-      { int: 7, ref: 6, dex: 6, tech: 4, cool: 8, will: 6, luck: 6, move: 6, body: 6, emp: 7 }
+      { int: 7, ref: 7, dex: 6, tech: 4, cool: 8, will: 6, luck: 7, move: 6, body: 5, emp: 6 },
+      { int: 6, ref: 7, dex: 7, tech: 4, cool: 8, will: 6, luck: 6, move: 7, body: 5, emp: 6 },
+      { int: 7, ref: 6, dex: 7, tech: 5, cool: 8, will: 7, luck: 5, move: 6, body: 5, emp: 6 },
+      { int: 8, ref: 7, dex: 6, tech: 3, cool: 8, will: 6, luck: 6, move: 6, body: 5, emp: 7 },
+      { int: 6, ref: 6, dex: 7, tech: 4, cool: 8, will: 7, luck: 7, move: 6, body: 6, emp: 5 },
+      { int: 7, ref: 7, dex: 6, tech: 4, cool: 8, will: 6, luck: 6, move: 6, body: 6, emp: 6 },
+      { int: 8, ref: 6, dex: 6, tech: 5, cool: 8, will: 7, luck: 5, move: 6, body: 5, emp: 6 },
+      { int: 7, ref: 6, dex: 7, tech: 4, cool: 8, will: 6, luck: 6, move: 7, body: 5, emp: 6 }
     ],
     skills: {
       athletics: 2, brawling: 2, concentration: 4, conversation: 6, education: 6,
       evasion: 6, firstAid: 2, humanPerception: 6, languageStreetslang: 4,
       localExpertYourHome: 4, perception: 4, persuasion: 6, stealth: 2,
-      handgun: 6, accounting: 6, business: 6, deduction: 6, bureaucracy: 4
+      business: 6, handgun: 6, accounting: 6, deduction: 6, bureaucracy: 6
     },
-    weapons: ["Very Heavy Pistol"],
-    armor: "Bodyweight Suit (SP 11) + Exec Suit",
-    cyberware: ["Internal Agent Implant", "Subdermal Pocket", "Cybereye (Times Square Plus)"],
-    gear: ["Executive Suite (Corp Conapt)", "Corporate Assistant / Driver", "Briefcase with Scrambler", "Ammo (Very Heavy x30)", "Eurodollars (1000 eb)"]
+    weaponChoices: [
+      { id: "primaryWeapon", label: "Executive Sidearm", options: ["Very Heavy Pistol (Quality)", "Heavy Pistol (Quality)", "SMG (Concealed)"] }
+    ],
+    corpPerkChoices: [
+      { id: "execPerk", label: "Corporate Asset", options: ["Corporate Conapt (Subsidized Housing)", "Company Aerodyne/Car Commute", "Junior Associate (Bodyguard/Driver)"] }
+    ],
+    cyberwareChoices: [
+      { id: "execComm", label: "Executive Augmentation", options: ["Internal Agent (Cyberaudio)", "Neural Link & Interface Plugs", "Subdermal Pocket"] }
+    ],
+    baseCyberware: [],
+    armor: "Light Armorjack (Tailored Suit SP 11)",
+    gear: ["Executive Briefcase", "Flagship Agent", "Business Wardrobe", "Light Armorjack Body", "Eurodollars (1000 eb)"]
   },
+
   lawman: {
     name: "Lawman",
     ability: "Backup",
-    tagline: "NCPD officer, corporate sheriff, and badge on the beat",
+    tagline: "NCPD officer, corporate badge, and highway patrolman",
     statTemplates: [
-      { int: 6, ref: 8, dex: 7, tech: 4, cool: 7, will: 7, luck: 6, move: 6, body: 7, emp: 4 },
-      { int: 6, ref: 8, dex: 8, tech: 3, cool: 6, will: 7, luck: 6, move: 6, body: 8, emp: 4 },
-      { int: 7, ref: 8, dex: 7, tech: 4, cool: 6, will: 6, luck: 6, move: 7, body: 7, emp: 4 },
-      { int: 5, ref: 8, dex: 8, tech: 4, cool: 7, will: 7, luck: 5, move: 6, body: 8, emp: 4 },
-      { int: 6, ref: 8, dex: 7, tech: 4, cool: 7, will: 6, luck: 7, move: 6, body: 7, emp: 4 },
-      { int: 7, ref: 8, dex: 8, tech: 3, cool: 6, will: 6, luck: 6, move: 6, body: 7, emp: 5 },
-      { int: 6, ref: 8, dex: 7, tech: 4, cool: 7, will: 7, luck: 6, move: 6, body: 7, emp: 4 },
-      { int: 5, ref: 8, dex: 7, tech: 5, cool: 7, will: 7, luck: 6, move: 6, body: 7, emp: 4 },
-      { int: 6, ref: 8, dex: 8, tech: 4, cool: 6, will: 7, luck: 5, move: 7, body: 7, emp: 4 },
-      { int: 6, ref: 8, dex: 7, tech: 4, cool: 7, will: 6, luck: 6, move: 7, body: 7, emp: 4 }
+      { int: 6, ref: 8, dex: 7, tech: 4, cool: 7, will: 7, luck: 6, move: 6, body: 8, emp: 4 },
+      { int: 5, ref: 8, dex: 8, tech: 3, cool: 7, will: 6, luck: 6, move: 7, body: 7, emp: 4 },
+      { int: 6, ref: 7, dex: 7, tech: 4, cool: 7, will: 7, luck: 6, move: 6, body: 8, emp: 5 },
+      { int: 7, ref: 8, dex: 6, tech: 4, cool: 6, will: 7, luck: 5, move: 6, body: 8, emp: 4 },
+      { int: 5, ref: 7, dex: 8, tech: 4, cool: 7, will: 7, luck: 6, move: 7, body: 7, emp: 4 },
+      { int: 6, ref: 8, dex: 7, tech: 3, cool: 8, will: 6, luck: 6, move: 6, body: 8, emp: 4 },
+      { int: 7, ref: 7, dex: 7, tech: 4, cool: 7, will: 6, luck: 6, move: 6, body: 7, emp: 5 },
+      { int: 5, ref: 8, dex: 7, tech: 4, cool: 7, will: 7, luck: 6, move: 7, body: 8, emp: 3 },
+      { int: 6, ref: 8, dex: 8, tech: 4, cool: 6, will: 6, luck: 6, move: 6, body: 8, emp: 4 },
+      { int: 6, ref: 8, dex: 7, tech: 4, cool: 7, will: 7, luck: 5, move: 7, body: 7, emp: 4 }
     ],
     skills: {
       athletics: 4, brawling: 6, concentration: 2, conversation: 4, education: 2,
-      evasion: 6, firstAid: 4, humanPerception: 6, languageStreetslang: 4,
-      localExpertYourHome: 6, perception: 6, persuasion: 4, stealth: 2,
-      handgun: 6, shoulderArms: 6, deduction: 4, criminology: 6, interrogation: 4
+      evasion: 6, firstAid: 4, humanPerception: 4, languageStreetslang: 4,
+      localExpertYourHome: 4, perception: 6, persuasion: 4, stealth: 2,
+      shoulderArms: 6, handgun: 6, criminology: 6, interrogation: 6, deduction: 4
     },
-    weapons: ["Heavy Pistol", "Shotgun"],
+    weaponChoices: [
+      { id: "primaryWeapon", label: "Duty Longarm", options: ["Shotgun", "Assault Rifle", "Heavy SMG"] },
+      { id: "secondaryWeapon", label: "Service Sidearm", options: ["Heavy Pistol", "Very Heavy Pistol"] }
+    ],
+    cyberwareChoices: [
+      { id: "lawAudio", label: "Tactical Augmentation", options: ["Cyberaudio (Radio Communicator)", "Cybereye (Targeting Scope)", "Subdermal Armor"] }
+    ],
+    baseCyberware: [],
     armor: "Light Armorjack (Head & Body SP 11)",
-    cyberware: ["Neural Link", "Interface Plugs", "Subdermal Armor"],
-    gear: ["NCPD Badge & Uniform", "Handcuffs x2", "Radio Communicator", "Agent", "Ammo (Heavy x30)", "Ammo (Shotgun Slug x20)", "Eurodollars (500 eb)"]
+    gear: ["Handcuffs (x2)", "Flashlight", "Badge & Holster", "Agent", "Light Armorjack Body", "Light Armorjack Head", "Ammo (Duty x50)", "Eurodollars (500 eb)"]
   },
+
   media: {
     name: "Media",
     ability: "Credibility",
-    tagline: "Investigative journalist, screamsheet reporter, and truth hound",
+    tagline: "Investigative journalist, screamer anchor, and truth seeker",
     statTemplates: [
       { int: 8, ref: 6, dex: 6, tech: 4, cool: 7, will: 7, luck: 6, move: 6, body: 5, emp: 7 },
-      { int: 8, ref: 7, dex: 6, tech: 3, cool: 8, will: 6, luck: 6, move: 6, body: 4, emp: 8 },
-      { int: 7, ref: 6, dex: 7, tech: 4, cool: 8, will: 6, luck: 7, move: 6, body: 5, emp: 6 },
-      { int: 8, ref: 6, dex: 6, tech: 4, cool: 8, will: 7, luck: 5, move: 6, body: 5, emp: 7 },
-      { int: 7, ref: 7, dex: 6, tech: 4, cool: 7, will: 6, luck: 7, move: 6, body: 5, emp: 7 },
-      { int: 8, ref: 6, dex: 7, tech: 3, cool: 8, will: 6, luck: 6, move: 6, body: 4, emp: 8 },
-      { int: 8, ref: 7, dex: 6, tech: 4, cool: 7, will: 7, luck: 6, move: 5, body: 5, emp: 7 },
-      { int: 7, ref: 6, dex: 6, tech: 5, cool: 8, will: 6, luck: 6, move: 6, body: 5, emp: 7 },
-      { int: 8, ref: 6, dex: 6, tech: 4, cool: 8, will: 6, luck: 6, move: 7, body: 4, emp: 7 },
-      { int: 8, ref: 6, dex: 7, tech: 4, cool: 7, will: 6, luck: 6, move: 6, body: 5, emp: 7 }
+      { int: 7, ref: 7, dex: 6, tech: 5, cool: 7, will: 6, luck: 7, move: 6, body: 5, emp: 6 },
+      { int: 8, ref: 6, dex: 7, tech: 4, cool: 7, will: 7, luck: 6, move: 6, body: 5, emp: 6 },
+      { int: 7, ref: 7, dex: 6, tech: 4, cool: 8, will: 6, luck: 6, move: 7, body: 5, emp: 6 },
+      { int: 8, ref: 6, dex: 6, tech: 5, cool: 7, will: 6, luck: 7, move: 6, body: 6, emp: 6 },
+      { int: 7, ref: 6, dex: 7, tech: 4, cool: 8, will: 7, luck: 5, move: 6, body: 5, emp: 7 },
+      { int: 8, ref: 7, dex: 6, tech: 4, cool: 7, will: 6, luck: 6, move: 6, body: 6, emp: 6 },
+      { int: 7, ref: 6, dex: 6, tech: 5, cool: 8, will: 7, luck: 6, move: 6, body: 5, emp: 6 },
+      { int: 8, ref: 7, dex: 6, tech: 4, cool: 7, will: 7, luck: 6, move: 6, body: 5, emp: 6 },
+      { int: 7, ref: 7, dex: 7, tech: 4, cool: 7, will: 6, luck: 6, move: 6, body: 5, emp: 7 }
     ],
     skills: {
-      athletics: 2, brawling: 2, concentration: 4, conversation: 6, education: 4,
+      athletics: 2, brawling: 2, concentration: 4, conversation: 6, education: 6,
       evasion: 6, firstAid: 2, humanPerception: 6, languageStreetslang: 4,
       localExpertYourHome: 6, perception: 6, persuasion: 6, stealth: 4,
-      handgun: 6, photographyFilm: 6, deduction: 6, librarySearch: 6, bribery: 4
+      handgun: 6, deduction: 6, lipReading: 4, photographyFilm: 6, librarySearch: 6
     },
-    weapons: ["Heavy Pistol"],
+    weaponChoices: [
+      { id: "primaryWeapon", label: "Sidearm", options: ["Heavy Pistol", "Very Heavy Pistol", "SMG"] }
+    ],
+    cyberwareChoices: [
+      { id: "mediaCam", label: "Investigative Chrome", options: ["Cybereye (Video Recorder & Micro-Optics)", "Audio Suite (Recorder)", "Voice Synthesizer"] }
+    ],
+    baseCyberware: [],
     armor: "Light Armorjack (Head & Body SP 11)",
-    cyberware: ["Cybereye (Video Camera & Audio Recorder)", "Internal Agent Implant"],
-    gear: ["Broadcast Feed Rig", "Press Pass", "Scrambler Agent", "Ammo (Heavy x30)", "Eurodollars (500 eb)"]
+    gear: ["High-Def Video Camera", "Audio Recorder", "Press Pass Badge", "Agent", "Light Armorjack Body", "Eurodollars (500 eb)"]
   }
 };
 
@@ -283,83 +359,89 @@ export const CPR_LIFEPATH = {
   culturalOrigins: [
     { origin: "North American", language: "English" },
     { origin: "South/Central American", language: "Spanish" },
-    { origin: "Western European", language: "French or German" },
-    { origin: "Eastern European", language: "Russian or Polish" },
-    { origin: "Middle Eastern", language: "Arabic or Hebrew" },
-    { origin: "African", language: "Swahili or Yoruba" },
-    { origin: "South Asian", language: "Hindi or Bengali" },
-    { origin: "South East Asian", language: "Tagalog or Vietnamese" },
-    { origin: "East Asian", language: "Japanese, Cantonese, or Mandarin" },
-    { origin: "Oceania / Pacific Islander", language: "Hawaiian, Maori, or Samoan" }
+    { origin: "Western European", language: "French/German/Italian" },
+    { origin: "Eastern European", language: "Russian/Polish/Ukrainian" },
+    { origin: "Middle Eastern", language: "Arabic" },
+    { origin: "African", language: "Swahili/Yoruba" },
+    { origin: "East Asian", language: "Japanese/Mandarin/Korean" },
+    { origin: "South/Southeast Asian", language: "Hindi/Tagalog/Vietnamese" },
+    { origin: "Oceanian", language: "Maori/Hawaiian" }
   ],
   personalities: [
     "Shy and secretive", "Rebellious, antisocial, and violent", "Arrogant, proud, and aloof",
-    "Moody, rash, and headstrong", "Pickled, calm, and detached", "Hidden valid idealist",
-    "Friendly, warm, and outgoing", "Sneaky, deceptive, and untrustworthy", "Intellectual and detached",
-    "Goofy, jokester, and manic"
+    "Moody, rash, and headstrong", "Pick and picky", "Stable, serious, and professional",
+    "Friendly and outgoing", "Cynical, sarcastic, and biting", "Intellectual and detached",
+    "Live-wire, chaotic, and loud"
   ],
   clothingStyles: [
-    "Generic Chic (Standard, colorful modular street clothes)",
-    "Leisurewear (Comfortable athletic, hoodies, runners)",
-    "Urban Flash (Bright neons, LED trims, translucent plastics)",
-    "Business Exec (Sharp corporate power suits, tailored lines)",
-    "Nomad Leathers (Rugged hides, tribal patches, dust goggles)",
-    "Bohemian (Layered vintage, retro scarves, eclectic accessories)",
-    "Asia Pop (Japanese anime motifs, oversized footwear, hyper-cute decals)",
-    "Cyberpunk (Classic dark leather, chrome spikes, heavy combat boots)",
-    "High Fashion (Exclusive designer pieces, luminescent fabrics)",
-    "Crossover (Mismatched combat military surplus over streetwear)"
+    "Generic Chic (Standard, colorful, modular)",
+    "Leisurewear (Comfortable, athletic streetwear)",
+    "Urban Flash (Neon, bright, glowing streetwear)",
+    "Businesswear (Crisp, sharp corporate suit)",
+    "High Fashion (Exclusive designer labels)",
+    "Bohemian (Layered, retro, vintage fabrics)",
+    "Bag Lady Chic (Ragged, combat zone patchwork)",
+    "Gang Colors (Faction tattoos, bandanas, sigils)",
+    "Nomad Leathers (Hardened road gear, dust goggles)",
+    "Asia Pop (Hyper-stylized anime/cyber aesthetic)"
   ],
   hairstyles: [
-    "Mohawk with neon dyes", "Long and ratty dreadlocks", "Short and spiked with shaved sides",
-    "Wild braids with woven fiber-optics", "Clean shaven / completely bald",
-    "Striped and multi-tinted buzzcut", "Neat corporate slickback", "Asymmetrical cyberpunk bob",
-    "Afro with metallic beads", "Messy anime spikes"
+    "Mohawk (Neon dyed)", "Long and ratty", "Short and cropped", "Wild and voluminous",
+    "Braids / Dreadlocks", "Clean fade / undercut", "Bald / Chrome scalp", "Spiky shock",
+    "Topknot / Cyber-bun", "Classic parted"
   ],
   affectations: [
-    "Tattoos that cover arms and neck", "Mirrored shades worn even at night",
-    "Ritual scarification or gang brand", "Cyberware aesthetic exposed with gold plating",
-    "Distinctive cigar/cigarette habit", "Chewing stimulant gum constantly",
-    "Multiple ear, lip, and brow piercings", "Custom chrome prosthetic fingers",
-    "Always wearing heavy combat gloves", "Spiked leather collar or choker"
+    "Tattoos all over face and body", "Mirrored cyber-shades at night", "Chewing synth-gum constantly",
+    "Smelling of ozone and cheap stims", "Carrying a lucky tarot card", "Gold cyber-teeth",
+    "Metallic nail claws", "Cyber-implanted barcode", "Constant finger-tapping rhythm", "Heavy vocal modulator"
   ],
   valueMost: [
-    "Money and financial independence", "Personal honor and integrity", "Your word and loyalty",
-    "Honesty above all", "Forbidden knowledge and data", "Vengeance against those who wronged you",
-    "Love and personal devotion", "Power, control, and respect", "Family and clan survival",
-    "Friendship and camaraderie"
+    "Money (Eddies buy freedom)", "Honor (A word given is unbroken)", "Your Word (Reputation is all you have)",
+    "Honesty (Cut through the corporate lies)", "Knowledge (Data is power in 2045)", "Vengeance (Nobody crosses you)",
+    "Love (Someone worth fighting for)", "Power (Control your own destiny)", "Having Fun (Live fast, leave a corpse)",
+    "Friendship (Choombas to the grave)"
   ],
   aboutPeople: [
-    "I stay neutral; everyone has an angle.", "I like almost everyone until they cross me.",
-    "People are untrustworthy and must be watched.", "People are pawns to be used for survival.",
-    "People are wonderful, diverse, and worth protecting.", "I hate almost everyone; Night City is trash.",
-    "Only your crew matters; outsiders are disposable.", "Everyone is an opportunity for profit."
+    "I stay neutral. Everyone is just trying to survive.",
+    "I like almost everyone until they give me a reason not to.",
+    "I hate almost everyone. People are treacherous snakes.",
+    "People are tools to be used and discarded.",
+    "Every choomba is valuable; loyalty is everything.",
+    "Nobody gets close. Distance keeps you breathing."
   ],
   familyBackgrounds: [
-    "Corporate Executives (Privileged childhood until the fall)",
-    "Nomad Clan (Raised on the open road in armed convoys)",
-    "Street Scavengers / Homeless (Raised in shipping containers)",
-    "Combat Zone Ganger Family (Surrounded by booster wars)",
-    "Middle Class Tech Workers (Quiet childhood in the suburbs)",
-    "Media / Pirate Broadcaster Parents (Constant government raids)",
-    "Trauma Team / Medical Operatives (Grew up around blood and trauma)",
-    "Blue-Collar Harbor / Factory Workers (Tough industrial upbringing)"
+    "Corporate Execs: Raised in a gated arcology before the collapse.",
+    "Corporate Managers: Middle-management suburbia lost to foreclosure.",
+    "Corporate Technicians: Factory workers living in company dormitories.",
+    "Nomad Pack: Wandering highway convoys and desert camps.",
+    "Ganger Family: Raised in the turf of an active combat zone gang.",
+    "Combat Zone Scavengers: Survived on scraps, ruins, and salvage.",
+    "Urban Homeless: Lived in shipping container stacks in the Megabuildings.",
+    "Megabuilding Workers: Grinding paycheck to paycheck in overcrowded housing.",
+    "High Tech Pirates: Raised on offshore smuggling rigs and airships.",
+    "Reclaimer Settlers: Trying to rebuild the shattered ruins of the Old City."
   ],
   familyCrises: [
-    "Family lost everything to a corporate takeover.",
-    "Parents were arrested and executed by NCPD or CorpSec.",
+    "Family lost everything through corporate betrayal.",
+    "Family flatlined in a crossfire between Arasaka and Militech.",
+    "Family was exiled from their home or Nomad pack.",
+    "Family was imprisoned on fabricated charges.",
     "Family vanished without a trace in the Combat Zone.",
-    "Family was murdered by a rival boostergang; you escaped.",
-    "Family was torn apart by deep debt to a loan shark.",
-    "A parent succumbed to extreme cyberpsychosis.",
-    "Betrayed by a close relative for corporate bounty."
+    "Family was murdered by an unknown hit squad.",
+    "A massive debt was inherited from a dead relative.",
+    "Family broke apart due to internal feud and betrayal.",
+    "A terrible disease or bioweapon wiped them out.",
+    "A sibling or parent sold out to a rival megacorp."
   ],
   lifeGoals: [
-    "Clear my family's name and restore our standing.",
-    "Get bloody revenge on the corp or gang that ruined me.",
-    "Get filthy rich and buy my way into an Executive Conapt.",
-    "Become a Night City Legend remembered at the Afterlife.",
-    "Protect my crew/family from the dangers of the street.",
-    "Escape Night City forever and find peace on the open road."
+    "Clear your name and avenge your slaughtered family.",
+    "Live fast, die young, and become an Afterlife Legend with a drink named after you.",
+    "Get rich enough to buy a penthouse in the Executive Zone and never look back.",
+    "Burn Arasaka or Militech to the ground for what they took.",
+    "Find your missing sibling or lover in the dark underground.",
+    "Run your own high-stakes Fixer syndicate or Combat Zone gang.",
+    "Master the Net and crack the Blackwall to find the ghost of an old friend.",
+    "Save enough eddies to get your family out of Night City forever.",
+    "Survive long enough to die of old age with chrome intact."
   ]
 };

@@ -1,6 +1,6 @@
 /**
  * Cyberpunk RED Foundry Actor Builder
- * Creates native 'character' actors in Foundry VTT v12 with stats, skills, items, and lifepaths
+ * Creates native 'character' actors in Foundry VTT v12 with stats, skills, chosen gear, and lifepaths
  */
 
 import { CPR_ROLES } from "./cpr-chargen-data.js";
@@ -73,7 +73,7 @@ export class CPRCharGenActor {
     const actor = await Actor.create(actorData);
     console.log(`CPR CharGen | Created Actor: ${actor.name} (${actor.id})`);
 
-    // 2. Attach Starting Skills from Template
+    // 2. Attach Starting Skills
     const skillsToApply = charData.skills || roleDef.skills;
     if (skillsToApply) {
       await this.applySkills(actor, skillsToApply);
@@ -99,12 +99,12 @@ export class CPRCharGenActor {
   }
 
   /**
-   * Search official system compendiums for matching weapons, armor, and cyberware
+   * Search official system compendiums for matching weapons, armor, cyberware, and gear
    */
   static async attachCompendiumGear(actor, roleDef, charData) {
     const itemsToAdd = [];
 
-    // Find Role item
+    // 1. Find Role item
     const rolePack = game.packs.get("cyberpunk-red-core.roles");
     if (rolePack) {
       const index = await rolePack.getIndex();
@@ -115,12 +115,18 @@ export class CPRCharGenActor {
       }
     }
 
-    // Search Weapons
+    // 2. Search Chosen Weapons
+    const weaponsToSearch = (charData.chosenWeapons && charData.chosenWeapons.length > 0)
+      ? charData.chosenWeapons
+      : roleDef.weaponChoices.map(wc => wc.options[0]);
+
     const weaponPack = game.packs.get("cyberpunk-red-core.weapons");
     if (weaponPack) {
       const wIndex = await weaponPack.getIndex();
-      for (const wName of roleDef.weapons) {
-        const entry = wIndex.find(i => i.name.toLowerCase().includes(wName.toLowerCase()));
+      for (const wName of weaponsToSearch) {
+        // Strip parentheticals for search matching (e.g. "Very Heavy Pistol (Quality)" -> "Very Heavy Pistol")
+        const cleanName = wName.replace(/\s*\(.*?\)\s*/g, "").trim().toLowerCase();
+        const entry = wIndex.find(i => i.name.toLowerCase().includes(cleanName));
         if (entry) {
           const doc = await weaponPack.getDocument(entry._id);
           if (doc) {
@@ -132,7 +138,7 @@ export class CPRCharGenActor {
       }
     }
 
-    // Search Armor
+    // 3. Search Armor (Light Armorjack Head & Body SP 11)
     const armorPack = game.packs.get("cyberpunk-red-core.armor");
     if (armorPack) {
       const aIndex = await armorPack.getIndex();
@@ -157,12 +163,14 @@ export class CPRCharGenActor {
       }
     }
 
-    // Search Cyberware
+    // 4. Search Chosen Cyberware
+    const cyberToSearch = charData.chosenCyberware || roleDef.baseCyberware || [];
     const cyberPack = game.packs.get("cyberpunk-red-core.cyberware");
     if (cyberPack) {
       const cIndex = await cyberPack.getIndex();
-      for (const cName of roleDef.cyberware) {
-        const entry = cIndex.find(i => i.name.toLowerCase().includes(cName.toLowerCase()));
+      for (const cName of cyberToSearch) {
+        const cleanName = cName.replace(/\s*\(.*?\)\s*/g, "").trim().toLowerCase();
+        const entry = cIndex.find(i => i.name.toLowerCase().includes(cleanName));
         if (entry) {
           const doc = await cyberPack.getDocument(entry._id);
           if (doc) {
@@ -174,9 +182,38 @@ export class CPRCharGenActor {
       }
     }
 
+    // 5. Search Programs (if Netrunner)
+    if (roleDef.deckPrograms) {
+      const progPack = game.packs.get("cyberpunk-red-core.programs");
+      if (progPack) {
+        const pIndex = await progPack.getIndex();
+        for (const pName of roleDef.deckPrograms) {
+          const entry = pIndex.find(i => i.name.toLowerCase() === pName.toLowerCase());
+          if (entry) {
+            const doc = await progPack.getDocument(entry._id);
+            if (doc) itemsToAdd.push(doc.toObject());
+          }
+        }
+      }
+    }
+
+    // 6. Search Standard Gear
+    const gearPack = game.packs.get("cyberpunk-red-core.gear");
+    if (gearPack && roleDef.gear) {
+      const gIndex = await gearPack.getIndex();
+      for (const gName of roleDef.gear) {
+        const cleanName = gName.replace(/\s*\(.*?\)\s*/g, "").trim().toLowerCase();
+        const entry = gIndex.find(i => i.name.toLowerCase().includes(cleanName));
+        if (entry) {
+          const doc = await gearPack.getDocument(entry._id);
+          if (doc) itemsToAdd.push(doc.toObject());
+        }
+      }
+    }
+
     if (itemsToAdd.length > 0) {
       await actor.createEmbeddedDocuments("Item", itemsToAdd);
-      console.log(`CPR CharGen | Added ${itemsToAdd.length} compendium items to ${actor.name}`);
+      console.log(`CPR CharGen | Attached ${itemsToAdd.length} compendium items to ${actor.name}`);
     }
   }
 }
