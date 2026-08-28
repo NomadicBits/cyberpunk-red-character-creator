@@ -1,6 +1,6 @@
 /**
  * Cyberpunk RED Character Creation Wizard Dialog
- * Interactive FormApplication with AI concept generation and lifepath builder
+ * Interactive FormApplication with AI concept generation, Edgerunner customizer, and lifepath builder
  */
 
 import { CPR_ROLES, CPR_LIFEPATH } from "./cpr-chargen-data.js";
@@ -16,8 +16,9 @@ export class CPRCharGenWizard extends FormApplication {
       selectedTemplateIndex: 0,
       charName: "V",
       aiConceptPrompt: "",
+      skills: { ...CPR_ROLES.solo.skills },
       lifepath: this.generateRandomLifepath(),
-      backstory: "<p>Hit the neon streets of Night City in 2045 looking to carve out a name.</p>"
+      backstory: "<p>Hit the neon streets of Night City in 2045 looking to carve out a name as an edge-runner.</p>"
     };
   }
 
@@ -26,8 +27,9 @@ export class CPRCharGenWizard extends FormApplication {
       id: "cpr-chargen-wizard",
       title: "Cyberpunk RED: AI Character Creator",
       template: "modules/cyberpunk-red-character-creator/templates/chargen-wizard.hbs",
-      width: 780,
-      height: 720,
+      width: 1020,
+      height: 860,
+      resizable: true,
       classes: ["cpr-chargen-window"],
       tabs: [{ navSelector: ".cpr-tabs", contentSelector: ".cpr-tab-content", initial: "role" }],
       closeOnSubmit: true
@@ -45,6 +47,10 @@ export class CPRCharGenWizard extends FormApplication {
     const wounded = Math.ceil(hp / 2);
     const humanity = emp * 10;
 
+    // Calculate total spent skill points
+    const currentSkills = this.charData.skills || roleDef.skills;
+    const totalSpentPoints = Object.values(currentSkills).reduce((acc, val) => acc + (parseInt(val, 10) || 0), 0);
+
     return {
       roles: CPR_ROLES,
       selectedRole: this.charData.selectedRole,
@@ -52,6 +58,8 @@ export class CPRCharGenWizard extends FormApplication {
       selectedTemplateIndex: this.charData.selectedTemplateIndex,
       currentStats: stats,
       derived: { hp, wounded, humanity },
+      currentSkills: currentSkills,
+      totalSpentPoints: totalSpentPoints,
       charName: this.charData.charName,
       mode: this.charData.mode,
       aiConceptPrompt: this.charData.aiConceptPrompt,
@@ -63,35 +71,74 @@ export class CPRCharGenWizard extends FormApplication {
   activateListeners(html) {
     super.activateListeners(html);
 
-    // 1. Role Card Click
+    // 1. Mode Toggle (Streetrat vs Edgerunner)
+    html.find(".mode-btn").on("click", (e) => {
+      e.preventDefault();
+      const targetMode = $(e.currentTarget).data("mode");
+      this.charData.mode = targetMode;
+      this.render();
+    });
+
+    // 2. Role Card Click
     html.find(".role-card").on("click", (e) => {
       const roleKey = $(e.currentTarget).data("role");
       this.charData.selectedRole = roleKey;
       this.charData.selectedTemplateIndex = 0;
+      const roleDef = CPR_ROLES[roleKey] || CPR_ROLES.solo;
+      this.charData.skills = { ...roleDef.skills };
       this.render();
     });
 
-    // 2. Stat Template Select
+    // 3. Stat Template Select
     html.find("select[name='statTemplateIndex']").on("change", (e) => {
       this.charData.selectedTemplateIndex = parseInt(e.target.value, 10) || 0;
       this.render();
     });
 
-    // 3. Roll 1d10 Stat Array Button
+    // 4. Roll 1d10 Stat Array Button
     html.find(".btn-roll-stats").on("click", () => {
       this.charData.selectedTemplateIndex = Math.floor(Math.random() * 10);
       ui.notifications.info(`Rolled Stat Array Template ${this.charData.selectedTemplateIndex + 1}!`);
       this.render();
     });
 
-    // 4. Roll Full Random Lifepath Button
+    // 5. Edgerunner Skill Increment / Decrement Handlers
+    html.find(".btn-skill-inc").on("click", (e) => {
+      const skillName = $(e.currentTarget).data("skill");
+      const currentVal = parseInt(this.charData.skills[skillName] || 0, 10);
+      if (currentVal < 6) {
+        this.charData.skills[skillName] = currentVal + 1;
+        this.render();
+      } else {
+        ui.notifications.warn("Starting skill level cannot exceed 6 in character generation.");
+      }
+    });
+
+    html.find(".btn-skill-dec").on("click", (e) => {
+      const skillName = $(e.currentTarget).data("skill");
+      const currentVal = parseInt(this.charData.skills[skillName] || 0, 10);
+      if (currentVal > 0) {
+        this.charData.skills[skillName] = currentVal - 1;
+        this.render();
+      }
+    });
+
+    // 6. Reset Skills Button
+    html.find(".btn-reset-skills").on("click", () => {
+      const roleDef = CPR_ROLES[this.charData.selectedRole] || CPR_ROLES.solo;
+      this.charData.skills = { ...roleDef.skills };
+      ui.notifications.info("Reset skills to standard role template.");
+      this.render();
+    });
+
+    // 7. Roll Full Random Lifepath Button
     html.find(".btn-roll-lifepath").on("click", () => {
       this.charData.lifepath = this.generateRandomLifepath();
       ui.notifications.info("Rolled complete random Lifepath!");
       this.render();
     });
 
-    // 5. AI Concept Synthesizer Button
+    // 8. AI Concept Synthesizer Button
     html.find(".btn-ai-synthesize").on("click", async () => {
       const prompt = html.find("input[name='aiConceptPrompt']").val() || "";
       ui.notifications.info("CPR AI: Synthesizing character concept from Legion...");
@@ -100,6 +147,8 @@ export class CPRCharGenWizard extends FormApplication {
         if (result.name) this.charData.charName = result.name;
         if (result.role && CPR_ROLES[result.role.toLowerCase()]) {
           this.charData.selectedRole = result.role.toLowerCase();
+          const roleDef = CPR_ROLES[this.charData.selectedRole];
+          this.charData.skills = { ...roleDef.skills };
         }
         if (result.templateIndex !== undefined) {
           this.charData.selectedTemplateIndex = Math.max(0, Math.min(9, result.templateIndex - 1));
@@ -130,7 +179,7 @@ export class CPRCharGenWizard extends FormApplication {
       }
     });
 
-    // 6. AI Weave Backstory Button
+    // 9. AI Weave Backstory Button
     html.find(".btn-ai-weave-bio").on("click", async () => {
       ui.notifications.info("CPR AI: Weaving Lifepath into narrative backstory...");
       try {
@@ -156,13 +205,10 @@ export class CPRCharGenWizard extends FormApplication {
       }
     });
 
-    // 7. Cancel Button
+    // 10. Cancel Button
     html.find(".btn-cancel").on("click", () => this.close());
   }
 
-  /**
-   * Helper to pick random item from array
-   */
   pickRandom(arr) {
     return arr[Math.floor(Math.random() * arr.length)];
   }
@@ -197,6 +243,7 @@ export class CPRCharGenWizard extends FormApplication {
       name: formData.charName || this.charData.charName || "Night City Edge",
       role: this.charData.selectedRole,
       stats: stats,
+      skills: this.charData.skills || roleDef.skills,
       lifepath: {
         culturalOrigin: formData.lp_culturalOrigin,
         personality: formData.lp_personality,

@@ -1,12 +1,19 @@
 /* Cyberpunk RED Character Creator Neon HUD Theme */
 
+.cpr-chargen-window {
+  min-width: 880px;
+  min-height: 720px;
+}
+
 .cpr-chargen-window .window-content {
-  background: #0f1015;
+  background: #0d0e12;
   color: #e0e6ed;
   font-family: 'Rajdhani', 'Segoe UI', Tahoma, sans-serif;
-  padding: 12px;
+  padding: 14px;
   border: 1px solid #ff003c;
-  box-shadow: 0 0 15px rgba(255, 0, 60, 0.3);
+  box-shadow: 0 0 20px rgba(255, 0, 60, 0.35);
+  display: flex;
+  flex-direction: column;
 }
 
 .cpr-chargen-header {
@@ -19,45 +26,54 @@
 
 .cpr-chargen-header .glitch-title {
   color: #ff003c;
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 1.5px;
   margin: 0;
-  text-shadow: 0 0 8px rgba(255, 0, 60, 0.5);
+  text-shadow: 0 0 10px rgba(255, 0, 60, 0.6);
 }
 
 .cpr-chargen-header .subtitle {
   color: #00f0ff;
-  font-size: 0.8rem;
-  margin: 0;
+  font-size: 0.85rem;
+  margin: 2px 0 0 0;
   letter-spacing: 0.8px;
 }
 
 .mode-toggle {
-  gap: 8px;
+  gap: 10px;
 }
 
 .mode-btn {
-  background: #1a1c23;
-  border: 1px solid #444;
-  padding: 4px 10px;
+  background: #141721;
+  border: 1px solid #3a3f52;
+  padding: 6px 14px;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: bold;
   color: #888;
+  transition: all 0.2s ease;
 }
 
-.mode-btn input {
-  display: none;
+.mode-btn:hover {
+  border-color: #00f0ff;
+  color: #00f0ff;
 }
 
 .mode-btn.active {
   background: #ff003c;
   color: #fff;
   border-color: #ff003c;
-  box-shadow: 0 0 10px rgba(255, 0, 60, 0.6);
+  box-shadow: 0 0 12px rgba(255, 0, 60, 0.7);
+}
+
+.mode-btn[data-mode="edgerunner"].active {
+  background: #00f0ff;
+  color: #000;
+  border-color: #00f0ff;
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.7);
 }
 
 /* AI Concept Bar */
@@ -75,23 +91,25 @@
   background: #08090d;
   color: #00f0ff;
   border: 1px solid #333;
-  padding: 6px 10px;
+  padding: 8px 12px;
   border-radius: 3px;
+  font-size: 0.9rem;
 }
 
 .cpr-ai-concept-bar .btn-ai-synthesize {
   background: linear-gradient(135deg, #00f0ff 0%, #0077aa 100%);
   color: #000;
-  font-weight: bold;
+  font-weight: 800;
   border: none;
-  padding: 6px 14px;
+  padding: 8px 18px;
   border-radius: 3px;
   cursor: pointer;
   transition: 0.2s;
+  letter-spacing: 0.5px;
 }
 
 .cpr-ai-concept-bar .btn-ai-synthesize:hover {
-  box-shadow: 0 0 12px rgba(0, 240, 255, 0.8);
+  box-shadow: 0 0 14px rgba(0, 240, 255, 0.9);
 }
 
 /* Tabs */
@@ -102,11 +120,11 @@
 
 .cpr-tabs .item {
   color: #888;
-  padding: 6px 14px;
+  padding: 8px 16px;
   border-bottom: 2px solid transparent;
   font-weight: bold;
   text-transform: uppercase;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
 }
 
 .cpr-tabs .item.active {
@@ -115,19 +133,25 @@
   text-shadow: 0 0 8px rgba(0, 240, 255, 0.5);
 }
 
+.cpr-tab-content {
+  flex: 1;
+  overflow-y: auto;
+}
+
 /* Roles Grid */
 .roles-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  max-height: 420px;
+  gap: 10px;
+  max-height: 480px;
   overflow-y: auto;
+  padding-right: 4px;
 }
 
 .role-card {
-  background: #151822;
-  border: 1px solid #2a2e3d;
-  padding: 10px;
+  background: #141722;
+  border: 1px solid #282d3d;
+  padding: 12px;
   border-radius: 4px;
   cursor: pointer;
   transition: 0.2s;
@@ -135,41 +159,41 @@
 
 .role-card:hover {
   border-color: #00f0ff;
-  background: #1c2130;
+  background: #1a2030;
 }
 
 .role-card.selected {
   border-color: #ff003c;
-  background: #2b111a;
-  box-shadow: 0 0 10px rgba(255, 0, 60, 0.4);
+  background: #26111a;
+  box-shadow: 0 0 12px rgba(255, 0, 60, 0.4);
 }
 
 .role-card h3 {
   margin: 0;
   color: #ff003c;
-  font-size: 1.1rem;
+  font-size: 1.15rem;
 }
 
 .role-card .role-ability {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   color: #ffe600;
   font-weight: bold;
 }
 
 .role-card p {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   color: #aaa;
-  margin: 4px 0 0 0;
+  margin: 6px 0 0 0;
 }
 
 /* Stats Matrix */
 .stat-template-selector {
   background: #141721;
-  padding: 8px;
+  padding: 10px;
   border: 1px solid #333;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .stat-select {
@@ -177,66 +201,175 @@
   background: #08090d;
   color: #fff;
   border: 1px solid #444;
-  padding: 4px;
+  padding: 6px;
+  font-size: 0.9rem;
 }
 
-.btn-roll-stats, .btn-roll-lifepath, .btn-ai-weave-bio {
-  background: #222634;
+.btn-roll-stats, .btn-roll-lifepath, .btn-ai-weave-bio, .btn-reset-skills {
+  background: #1e2230;
   color: #00f0ff;
   border: 1px solid #00f0ff;
-  padding: 4px 10px;
+  padding: 6px 14px;
   border-radius: 3px;
   cursor: pointer;
   font-weight: bold;
+  transition: 0.2s;
+}
+
+.btn-roll-stats:hover, .btn-roll-lifepath:hover, .btn-ai-weave-bio:hover, .btn-reset-skills:hover {
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
 }
 
 .stats-matrix {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 10px;
+  margin-bottom: 14px;
 }
 
 .stat-box {
-  background: #151822;
-  border: 1px solid #333;
-  padding: 10px;
+  background: #141722;
+  border: 1px solid #2f3447;
+  padding: 12px;
   text-align: center;
   border-radius: 4px;
 }
 
 .stat-box span {
   display: block;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   color: #888;
   font-weight: bold;
 }
 
 .stat-box strong {
   display: block;
-  font-size: 1.4rem;
+  font-size: 1.6rem;
   color: #ff003c;
   margin-top: 4px;
 }
 
 .derived-stats-bar {
-  background: #1b1e2a;
-  border: 1px solid #444;
-  padding: 8px;
+  background: #161a26;
+  border: 1px solid #383e54;
+  padding: 10px;
   border-radius: 4px;
   justify-content: space-around;
 }
 
 .derived-badge {
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   color: #ddd;
 }
 
 .derived-badge strong {
   color: #00f0ff;
+  font-size: 1.1rem;
 }
 
-/* Gear & Lifepath */
+/* Skills Allocation Tab */
+.skills-header-bar {
+  background: #141721;
+  border: 1px solid #333;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.budget-badge {
+  font-size: 1rem;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.budget-badge.exact {
+  background: #133a20;
+  border: 1px solid #00ff66;
+  color: #00ff66;
+}
+
+.budget-badge.under {
+  background: #3a3213;
+  border: 1px solid #ffe600;
+  color: #ffe600;
+}
+
+.budget-badge.over {
+  background: #3a1318;
+  border: 1px solid #ff003c;
+  color: #ff003c;
+}
+
+.streetrat-skill-info {
+  font-size: 0.9rem;
+  color: #00f0ff;
+}
+
+.skills-grid-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px 14px;
+  max-height: 480px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.skill-row {
+  background: #141722;
+  border: 1px solid #282d3d;
+  padding: 6px 12px;
+  border-radius: 4px;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.skill-name {
+  font-size: 0.9rem;
+  color: #ddd;
+  text-transform: capitalize;
+}
+
+.skill-controls {
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-skill-inc, .btn-skill-dec {
+  background: #222738;
+  border: 1px solid #444c66;
+  color: #00f0ff;
+  width: 26px;
+  height: 26px;
+  border-radius: 3px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+}
+
+.btn-skill-inc:hover, .btn-skill-dec:hover {
+  background: #00f0ff;
+  color: #000;
+}
+
+.skill-value {
+  display: inline-block;
+  min-width: 24px;
+  text-align: center;
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: #ff003c;
+}
+
+.skill-value.static {
+  color: #00f0ff;
+}
+
+/* Gear & Chrome */
 .gear-overview-grid {
   gap: 16px;
 }
@@ -244,38 +377,54 @@
 .gear-column {
   flex: 1;
   background: #141721;
-  padding: 10px;
-  border: 1px solid #2a2e3d;
+  padding: 12px;
+  border: 1px solid #282d3d;
   border-radius: 4px;
 }
 
 .gear-column h3 {
   color: #00f0ff;
-  font-size: 0.95rem;
+  font-size: 1rem;
   border-bottom: 1px solid #333;
-  padding-bottom: 4px;
+  padding-bottom: 6px;
   margin-top: 0;
 }
 
 .gear-column ul {
-  padding-left: 16px;
+  padding-left: 18px;
   margin: 0;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: #ccc;
+}
+
+.armor-badge {
+  background: #1e2230;
+  border: 1px solid #00f0ff;
+  padding: 6px 12px;
+  border-radius: 3px;
+  color: #00f0ff;
+  font-weight: bold;
+}
+
+/* Lifepath Grid */
+.lifepath-actions {
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
 .lifepath-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  margin-top: 10px;
-  margin-bottom: 10px;
+  gap: 10px;
+  margin-bottom: 14px;
 }
 
 .lifepath-item label {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   color: #00f0ff;
   font-weight: bold;
+  display: block;
+  margin-bottom: 2px;
 }
 
 .lifepath-item input {
@@ -283,8 +432,17 @@
   background: #08090d;
   color: #fff;
   border: 1px solid #333;
-  padding: 4px;
+  padding: 6px 8px;
   border-radius: 3px;
+  font-size: 0.85rem;
+}
+
+.backstory-box label {
+  font-size: 0.85rem;
+  color: #00f0ff;
+  font-weight: bold;
+  display: block;
+  margin-bottom: 4px;
 }
 
 .backstory-box textarea {
@@ -292,9 +450,10 @@
   background: #08090d;
   color: #e0e0e0;
   border: 1px solid #444;
-  padding: 8px;
+  padding: 10px;
   border-radius: 4px;
   font-family: inherit;
+  font-size: 0.9rem;
 }
 
 /* Footer */
@@ -303,26 +462,28 @@
   padding-top: 12px;
   margin-top: 12px;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 12px;
 }
 
 .btn-create-actor {
   background: linear-gradient(135deg, #ff003c 0%, #990022 100%);
   color: #fff;
-  font-weight: bold;
+  font-weight: 800;
   border: 1px solid #ff003c;
-  padding: 8px 18px;
+  padding: 10px 22px;
   border-radius: 4px;
   cursor: pointer;
+  font-size: 0.95rem;
+  letter-spacing: 0.5px;
   text-shadow: 0 0 6px rgba(0, 0, 0, 0.8);
-  box-shadow: 0 0 12px rgba(255, 0, 60, 0.4);
+  box-shadow: 0 0 14px rgba(255, 0, 60, 0.5);
 }
 
 .btn-cancel {
-  background: #222;
+  background: #1c1f2b;
   color: #888;
   border: 1px solid #444;
-  padding: 8px 14px;
+  padding: 10px 16px;
   border-radius: 4px;
   cursor: pointer;
 }
