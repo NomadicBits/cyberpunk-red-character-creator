@@ -3,6 +3,8 @@
  * Connects to configured vLLM / OpenAI API endpoint for intelligent character drafting
  */
 
+import { CONFIG } from "./config.js";
+
 function cleanCommand(cmd) {
   if (!cmd) return "";
   let s = cmd.trim();
@@ -34,8 +36,6 @@ function extractJson(text) {
   throw new Error("Failed to parse AI-generated character JSON.");
 }
 
-import { CONFIG } from "./config.js";
-
 export class CPRCharGenAI {
   static getApiUrl() {
     const url = game.settings.get("cyberpunk-red-character-creator", "apiUrl") || CONFIG.apiUrl || "http://localhost:8000/v1";
@@ -51,9 +51,14 @@ export class CPRCharGenAI {
   }
 
   static async complete(messages, options = {}) {
-    const baseUrl = this.getApiUrl();
+    const rawUrl = this.getApiUrl();
     const model = this.getModel();
     const apiKey = this.getApiKey();
+
+    const isHttps = typeof window !== "undefined" && window.location.protocol === "https:";
+    const urlsToTry = isHttps
+      ? ["https://192.168.1.200/v1", rawUrl]
+      : [rawUrl, "http://192.168.1.200/v1", "http://192.168.1.200:8000/v1"];
 
     const payload = {
       model: options.model || model,
@@ -63,23 +68,33 @@ export class CPRCharGenAI {
       top_p: options.top_p ?? 0.95
     };
 
-    console.log(`CPR CharGen | Connecting to LLM endpoint: ${baseUrl}/chat/completions`);
-    const res = await fetch(`${baseUrl}/chat/completions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`
-      },
-      body: JSON.stringify(payload)
-    });
+    let lastError = null;
+    for (const u of urlsToTry) {
+      try {
+        console.log(`CPR CharGen | Connecting to LLM endpoint: ${u}/chat/completions`);
+        const res = await fetch(`${u}/chat/completions`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${apiKey}`
+          },
+          body: JSON.stringify(payload)
+        });
 
-    if (!res.ok) {
-      const errText = await res.text();
-      throw new Error(`HTTP ${res.status}: ${errText}`);
+        if (!res.ok) {
+          const errText = await res.text();
+          throw new Error(`HTTP ${res.status}: ${errText}`);
+        }
+
+        const json = await res.json();
+        return json.choices?.[0]?.message?.content || "";
+      } catch (err) {
+        lastError = err;
+        console.warn(`CPR CharGen | Endpoint ${u} failed:`, err.message);
+      }
     }
 
-    const json = await res.json();
-    return json.choices?.[0]?.message?.content || "";
+    throw lastError || new Error("Failed to connect to AI inference backend.");
   }
 
   /**
