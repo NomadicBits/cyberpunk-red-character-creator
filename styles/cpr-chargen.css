@@ -200,6 +200,8 @@
   border: 1px solid #444;
   padding: 4px;
   font-size: 0.85rem;
+  height: 32px;
+  box-sizing: border-box;
 }
 
 .btn-roll-stats, .btn-roll-lifepath, .btn-ai-weave-bio, .btn-reset-skills {
@@ -369,15 +371,17 @@
 
 /* Gear & Chrome */
 .gear-overview-grid {
-  gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
 }
 
 .gear-column {
-  flex: 1;
   background: #141721;
-  padding: 10px;
+  padding: 10px 12px;
   border: 1px solid #282d3d;
   border-radius: 4px;
+  min-width: 0; /* Prevents overflow clipping */
 }
 
 .gear-column h3 {
@@ -386,6 +390,7 @@
   border-bottom: 1px solid #333;
   padding-bottom: 4px;
   margin-top: 0;
+  margin-bottom: 8px;
 }
 
 .gear-column ul {
@@ -398,11 +403,104 @@
 .armor-badge {
   background: #1e2230;
   border: 1px solid #00f0ff;
-  padding: 4px 8px;
+  padding: 6px 10px;
   border-radius: 3px;
   color: #00f0ff;
   font-weight: bold;
   font-size: 0.85rem;
+  margin: 0 0 8px 0;
+}
+
+/* Interactive Gear & Chrome Choice Selectors */
+.choice-group {
+  margin-bottom: 10px;
+}
+
+.choice-label {
+  display: block;
+  font-size: 0.8rem;
+  color: #00f0ff;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.gear-select {
+  width: 100%;
+  height: 32px;
+  line-height: 22px;
+  background: #08090d;
+  color: #e0e6ed;
+  border: 1px solid #3d455c;
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-size: 0.85rem;
+  font-family: inherit;
+  box-sizing: border-box;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.gear-select:focus {
+  border-color: #ff003c;
+  box-shadow: 0 0 6px rgba(255, 0, 60, 0.4);
+  outline: none;
+}
+
+.gear-select option {
+  background: #0d0e12;
+  color: #e0e6ed;
+  padding: 6px 8px;
+  font-size: 0.85rem;
+}
+
+.base-cyber-list {
+  background: #0d0f17;
+  padding: 6px 8px;
+  border-radius: 3px;
+  border-left: 3px solid #00f0ff;
+  margin-bottom: 10px;
+}
+
+.base-cyber-list .sub-label {
+  font-size: 0.75rem;
+  color: #888;
+  text-transform: uppercase;
+  font-weight: bold;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.base-cyber-list ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.base-cyber-list li {
+  font-size: 0.8rem;
+  color: #00f0ff;
+  margin-bottom: 2px;
+}
+
+.programs-list {
+  list-style: none;
+  padding-left: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+
+.programs-list li {
+  background: #08090d;
+  border: 1px solid #00f0ff;
+  color: #00f0ff;
+  padding: 2px 6px;
+  border-radius: 2px;
+  font-size: 0.75rem;
+  font-weight: bold;
 }
 
 /* Lifepath Grid */
@@ -486,66 +584,4 @@
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.85rem;
-}
-
-/* Interactive Gear & Chrome Choice Selectors */
-.choice-group {
-  margin-bottom: 8px;
-}
-
-.choice-label {
-  display: block;
-  font-size: 0.78rem;
-  color: #00f0ff;
-  font-weight: bold;
-  margin-bottom: 3px;
-}
-
-.gear-select {
-  width: 100%;
-  background: #08090d;
-  color: #fff;
-  border: 1px solid #3d455c;
-  padding: 5px 8px;
-  border-radius: 3px;
-  font-size: 0.85rem;
-  font-family: inherit;
-}
-
-.gear-select:focus {
-  border-color: #ff003c;
-  box-shadow: 0 0 6px rgba(255, 0, 60, 0.4);
-}
-
-.base-cyber-list {
-  background: #0d0f17;
-  padding: 6px;
-  border-radius: 3px;
-  border-left: 2px solid #00f0ff;
-  margin-bottom: 8px;
-}
-
-.base-cyber-list .sub-label {
-  font-size: 0.72rem;
-  color: #888;
-  text-transform: uppercase;
-  font-weight: bold;
-}
-
-.programs-list {
-  list-style: none;
-  padding-left: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-.programs-list li {
-  background: #08090d;
-  border: 1px solid #00f0ff;
-  color: #00f0ff;
-  padding: 2px 6px;
-  border-radius: 2px;
-  font-size: 0.75rem;
-  font-weight: bold;
 }
