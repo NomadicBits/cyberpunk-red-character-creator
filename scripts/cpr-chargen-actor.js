@@ -63,92 +63,100 @@ export class CPRCharGenActor {
    * @returns {Promise<Actor>}
    */
   static async createActor(charData) {
-    const roleKey = charData.role?.toLowerCase() || "solo";
-    const roleDef = CPR_ROLES[roleKey] || CPR_ROLES.solo;
-    const stats = charData.stats || roleDef.statTemplates[0];
+    try {
+      const roleKey = charData.role?.toLowerCase() || "solo";
+      const roleDef = CPR_ROLES[roleKey] || CPR_ROLES.solo;
+      const stats = charData.stats || roleDef.statTemplates[0];
 
-    // Compute Derived Stats
-    const body = stats.body || 6;
-    const will = stats.will || 6;
-    const emp = stats.emp || 4;
-    const maxHp = 10 + (5 * Math.ceil((body + will) / 2));
-    const maxHumanity = emp * 10;
+      // Compute Derived Stats
+      const body = stats.body || 6;
+      const will = stats.will || 6;
+      const emp = stats.emp || 4;
+      const maxHp = 10 + (5 * Math.ceil((body + will) / 2));
+      const maxHumanity = emp * 10;
 
-    // 1. Create Native Base Actor (WITHOUT passing system so CPRActor.create automatically attaches all ~66 core skills & cyberware slots)
-    const baseActorData = {
-      name: charData.name || "Night City Edge",
-      type: "character",
-      img: charData.img || "icons/svg/mystery-man.svg",
-      ownership: {
-        default: 0,
-        [game.user.id]: 3
-      }
-    };
+      // 1. Create Base Actor passing items: [] so CPRActor.create's data.items.concat succeeds!
+      const baseActorData = {
+        name: charData.name || "Night City Edge",
+        type: "character",
+        img: charData.img || "icons/svg/mystery-man.svg",
+        items: [], // CRITICAL: CPRActor.create requires data.items to be an array
+        ownership: {
+          default: 0,
+          [game.user.id]: 3
+        }
+      };
 
-    const actor = await Actor.create(baseActorData);
-    console.log(`CPR CharGen | Created Native Actor with all default core skills: ${actor.name} (${actor.id})`);
+      console.log("CPR CharGen | Instantiating base actor via CPRActor.create...", baseActorData);
+      const actor = await Actor.create(baseActorData);
+      console.log(`CPR CharGen | Created Native Actor with all default core skills: ${actor.name} (${actor.id})`);
 
-    // 2. Apply Stats, Vitals, Lifepath, and Wealth via update
-    const updateData = {
-      "system.stats.int.value": stats.int,
-      "system.stats.int.max": stats.int,
-      "system.stats.ref.value": stats.ref,
-      "system.stats.ref.max": stats.ref,
-      "system.stats.dex.value": stats.dex,
-      "system.stats.dex.max": stats.dex,
-      "system.stats.tech.value": stats.tech,
-      "system.stats.tech.max": stats.tech,
-      "system.stats.cool.value": stats.cool,
-      "system.stats.cool.max": stats.cool,
-      "system.stats.will.value": stats.will,
-      "system.stats.will.max": stats.will,
-      "system.stats.luck.value": stats.luck,
-      "system.stats.luck.max": stats.luck,
-      "system.stats.move.value": stats.move,
-      "system.stats.move.max": stats.move,
-      "system.stats.body.value": stats.body,
-      "system.stats.body.max": stats.body,
-      "system.stats.emp.value": stats.emp,
-      "system.stats.emp.max": stats.emp,
+      // 2. Apply Stats, Vitals, Lifepath, and Wealth via update
+      const updateData = {
+        "system.stats.int.value": stats.int,
+        "system.stats.int.max": stats.int,
+        "system.stats.ref.value": stats.ref,
+        "system.stats.ref.max": stats.ref,
+        "system.stats.dex.value": stats.dex,
+        "system.stats.dex.max": stats.dex,
+        "system.stats.tech.value": stats.tech,
+        "system.stats.tech.max": stats.tech,
+        "system.stats.cool.value": stats.cool,
+        "system.stats.cool.max": stats.cool,
+        "system.stats.will.value": stats.will,
+        "system.stats.will.max": stats.will,
+        "system.stats.luck.value": stats.luck,
+        "system.stats.luck.max": stats.luck,
+        "system.stats.move.value": stats.move,
+        "system.stats.move.max": stats.move,
+        "system.stats.body.value": stats.body,
+        "system.stats.body.max": stats.body,
+        "system.stats.emp.value": stats.emp,
+        "system.stats.emp.max": stats.emp,
 
-      "system.derivedStats.hp.value": maxHp,
-      "system.derivedStats.hp.max": maxHp,
-      "system.derivedStats.humanity.value": maxHumanity,
-      "system.derivedStats.humanity.max": maxHumanity,
+        "system.derivedStats.hp.value": maxHp,
+        "system.derivedStats.hp.max": maxHp,
+        "system.derivedStats.humanity.value": maxHumanity,
+        "system.derivedStats.humanity.max": maxHumanity,
 
-      "system.lifepath.culturalOrigin": charData.lifepath?.culturalOrigin || "",
-      "system.lifepath.personality": charData.lifepath?.personality || "",
-      "system.lifepath.clothingStyle": charData.lifepath?.clothingStyle || "",
-      "system.lifepath.hairStyle": charData.lifepath?.hairStyle || "",
-      "system.lifepath.affections": charData.lifepath?.affectation || "",
-      "system.lifepath.valueMost": charData.lifepath?.valueMost || "",
-      "system.lifepath.aboutPeople": charData.lifepath?.aboutPeople || "",
-      "system.lifepath.familyBackground": charData.lifepath?.familyBackground || "",
-      "system.lifepath.familyCrisis": charData.lifepath?.familyCrisis || "",
-      "system.lifepath.lifeGoals": charData.lifepath?.lifeGoals || "",
-      "system.lifepath.friends": charData.lifepath?.friend ? `${charData.lifepath.friend.who}: ${charData.lifepath.friend.relationship}` : "",
-      "system.lifepath.enemies": charData.lifepath?.enemy ? `${charData.lifepath.enemy.who} (${charData.lifepath.enemy.cause})` : "",
-      "system.lifepath.tragicLoveAffairs": charData.lifepath?.tragicLove || "",
+        "system.lifepath.culturalOrigin": charData.lifepath?.culturalOrigin || "",
+        "system.lifepath.personality": charData.lifepath?.personality || "",
+        "system.lifepath.clothingStyle": charData.lifepath?.clothingStyle || "",
+        "system.lifepath.hairStyle": charData.lifepath?.hairStyle || "",
+        "system.lifepath.affections": charData.lifepath?.affectation || "",
+        "system.lifepath.valueMost": charData.lifepath?.valueMost || "",
+        "system.lifepath.aboutPeople": charData.lifepath?.aboutPeople || "",
+        "system.lifepath.familyBackground": charData.lifepath?.familyBackground || "",
+        "system.lifepath.familyCrisis": charData.lifepath?.familyCrisis || "",
+        "system.lifepath.lifeGoals": charData.lifepath?.lifeGoals || "",
+        "system.lifepath.friends": charData.lifepath?.friend ? `${charData.lifepath.friend.who}: ${charData.lifepath.friend.relationship}` : "",
+        "system.lifepath.enemies": charData.lifepath?.enemy ? `${charData.lifepath.enemy.who} (${charData.lifepath.enemy.cause})` : "",
+        "system.lifepath.tragicLoveAffairs": charData.lifepath?.tragicLove || "",
 
-      "system.information.alias": charData.name || "Street Samurai",
-      "system.information.history": charData.backstory || "<p>Hit the streets in 2045.</p>",
-      "system.wealth.cash": charData.startingCash || 500
-    };
+        "system.information.alias": charData.name || "Street Samurai",
+        "system.information.history": charData.backstory || "<p>Hit the streets in 2045.</p>",
+        "system.wealth.cash": charData.startingCash || 500
+      };
 
-    await actor.update(updateData);
+      await actor.update(updateData);
 
-    // 3. Update Skill Ranks on the actor's loaded skill items
-    await this.applySkillRanks(actor, charData.skills || roleDef.skills);
+      // 3. Update Skill Ranks on the actor's loaded skill items
+      await this.applySkillRanks(actor, charData.skills || roleDef.skills);
 
-    // 4. Attach Role Item (e.g. Solo, Netrunner, Tech, etc.)
-    await this.attachRole(actor, roleDef);
+      // 4. Attach Role Item (e.g. Solo, Netrunner, Tech, etc.)
+      await this.attachRole(actor, roleDef);
 
-    // 5. Attach Weapons, Armor, Cyberware, Programs, and Gear
-    await this.attachGearAndChrome(actor, roleDef, charData);
+      // 5. Attach Weapons, Armor, Cyberware, Programs, and Gear
+      await this.attachGearAndChrome(actor, roleDef, charData);
 
-    ui.notifications.info(`Successfully created Cyberpunk RED character: "${actor.name}"!`);
-    actor.sheet.render(true);
-    return actor;
+      ui.notifications.info(`Successfully created Cyberpunk RED character: "${actor.name}"!`);
+      actor.sheet.render(true);
+      return actor;
+    } catch (err) {
+      console.error("CPR CharGen | Error creating character actor:", err);
+      ui.notifications.error(`Failed to create character: ${err.message}`);
+      throw err;
+    }
   }
 
   /**
