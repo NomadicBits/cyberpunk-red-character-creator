@@ -100,12 +100,24 @@ export class CPRCharGenActor {
       const maxHp = 10 + (5 * Math.ceil((body + will) / 2));
       const maxHumanity = emp * 10;
 
+      // Ownership Configuration
+      const ownerId = charData.ownerId || game.user.id;
+      const ownership = {
+        default: 0,
+        [ownerId]: 3
+      };
+      if (game.user.id !== ownerId) {
+        ownership[game.user.id] = 3;
+      }
+
       // 1. Create Base Actor with authentic Cyberpunk RED Mystery Man icon and prototype token
       const defaultIcon = "systems/cyberpunk-red-core/icons/compendium/default/Default_CPR_Mystery_Man.svg";
       const baseActorData = {
         name: charData.name || "Night City Edge",
         type: "character",
         img: charData.img || defaultIcon,
+        folder: charData.folder || null,
+        ownership: ownership,
         prototypeToken: {
           name: charData.name || "Night City Edge",
           actorLink: true,
@@ -394,5 +406,123 @@ export class CPRCharGenActor {
         console.log(`CPR CharGen | Installed ${cyberItems.length} cyberware items into ${actor.name}`);
       }
     }
+  }
+
+  /**
+   * Automated Test Runner:
+   * Generates a Streetrat Solo under a specified user in a dedicated folder,
+   * then performs a comprehensive validation audit on the created Actor document.
+   *
+   * @param {string} userName Target user name (defaults to "Brad")
+   * @param {string} folderName Target folder name (defaults to "AI test")
+   * @returns {Promise<Object>} Detailed audit report
+   */
+  static async testCreateSolo(userName = "Brad", folderName = "AI test") {
+    console.log(`%c=== STARTING CPR CHARGEN TEST: Streetrat Solo for ${userName} in "${folderName}" ===`, "color: #00f0ff; font-weight: bold;");
+
+    // 1. Locate or create folder
+    let folder = game.folders.find(f => f.type === "Actor" && f.name.toLowerCase() === folderName.toLowerCase());
+    if (!folder) {
+      folder = await Folder.create({
+        name: folderName,
+        type: "Actor",
+        color: "#ff003c"
+      });
+      console.log(`CPR CharGen Test | Created Folder "${folder.name}" (${folder.id})`);
+    }
+
+    // 2. Locate target user
+    const targetUser = game.users.find(u => u.name.toLowerCase() === userName.toLowerCase()) || game.user;
+    console.log(`CPR CharGen Test | Target User: "${targetUser.name}" (${targetUser.id})`);
+
+    // 3. Build Streetrat Solo configuration
+    const soloRole = CPR_ROLES.solo;
+    const testData = {
+      name: `Streetrat Solo (${targetUser.name})`,
+      role: "solo",
+      folder: folder.id,
+      ownerId: targetUser.id,
+      stats: soloRole.statTemplates[0],
+      skills: soloRole.skills,
+      chosenWeapons: ["Assault Rifle", "Very Heavy Pistol"],
+      chosenCyberware: ["Neural Link", "Interface Plugs", "Subdermal Armor"],
+      lifepath: {
+        culturalOrigin: "North American (English)",
+        personality: "Focused, disciplined, and calm",
+        clothingStyle: "Generic Chic",
+        hairStyle: "Short and cropped buzzcut",
+        affectation: "Combat scarred face from close-range shrapnel",
+        valueMost: "Honor (Your word is your bonded guarantee)",
+        aboutPeople: "I stay neutral. Everyone is just trying to survive.",
+        familyBackground: "Megabuilding Blue Collar",
+        familyCrisis: "Parents vanished into the Combat Zone without a trace.",
+        lifeGoals: "Establish my own syndicate or edgerunner mercenary outfit in Night City.",
+        friend: { who: "Dante (Ex-Trauma Team)", relationship: "Saved your life in a crossfire" },
+        enemy: { who: "Vortex (Maelstrom)", cause: "Stole a prototype cyberware crate" },
+        tragicLove: "Lover died in an Arasaka orbital strike during the 4th Corporate War"
+      },
+      backstory: "<p>A battle-tested street soldier operating out of the Heywood district.</p>",
+      startingCash: 500
+    };
+
+    // 4. Instantiate Actor
+    const actor = await this.createActor(testData);
+
+    // 5. Perform Comprehensive Sheet Audit
+    const audit = {
+      actorId: actor.id,
+      name: actor.name,
+      folder: actor.folder?.name,
+      owner: targetUser.name,
+      hasOwnership: actor.testUserPermission(targetUser, "OWNER"),
+      stats: {
+        int: actor.system.stats.int.value,
+        ref: actor.system.stats.ref.value,
+        dex: actor.system.stats.dex.value,
+        tech: actor.system.stats.tech.value,
+        cool: actor.system.stats.cool.value,
+        will: actor.system.stats.will.value,
+        luck: actor.system.stats.luck.value,
+        move: actor.system.stats.move.value,
+        body: actor.system.stats.body.value,
+        emp: actor.system.stats.emp.value
+      },
+      derivedStats: {
+        hp: `${actor.system.derivedStats.hp.value}/${actor.system.derivedStats.hp.max}`,
+        humanity: `${actor.system.derivedStats.humanity.value}/${actor.system.derivedStats.humanity.max}`
+      },
+      totalSkillsCount: actor.itemTypes.skill.length,
+      allocatedSkillsPassed: 0,
+      allocatedSkillsTotal: Object.keys(soloRole.skills).length,
+      allocatedSkillsDetails: {},
+      roleAttached: actor.itemTypes.role.map(r => `${r.name} (Rank ${r.system.rank})`),
+      weapons: actor.itemTypes.weapon.map(w => `${w.name} (${w.system.equipped})`),
+      armors: actor.itemTypes.armor.map(a => `${a.name} (${a.system.equipped})`),
+      cyberware: actor.itemTypes.cyberware.map(c => `${c.name} (${c.system.equipped})`),
+      installedCyberwareList: actor.system.installedItems?.list || [],
+      gear: actor.itemTypes.gear.map(g => `${g.name} (${g.system.equipped})`),
+      cash: actor.system.wealth.cash
+    };
+
+    // Verify each allocated skill rank
+    for (const [sKey, expectedRank] of Object.entries(soloRole.skills)) {
+      const cleanTarget = this.cleanKey(sKey);
+      const match = actor.itemTypes.skill.find(s => {
+        const sClean = this.cleanKey(s.name);
+        return sClean === cleanTarget || sClean.includes(cleanTarget) || cleanTarget.includes(sClean);
+      });
+      const actualRank = match ? match.system.level : 0;
+      const pass = actualRank === expectedRank;
+      if (pass) audit.allocatedSkillsPassed++;
+      audit.allocatedSkillsDetails[sKey] = {
+        expected: expectedRank,
+        actual: actualRank,
+        passed: pass
+      };
+    }
+
+    console.log("%c=== CPR CHARGEN TEST AUDIT REPORT ===", "color: #00ff66; font-weight: bold;", audit);
+    ui.notifications.info(`AI Test Complete: "${actor.name}" created under ${targetUser.name} in folder "${folderName}"!`);
+    return audit;
   }
 }

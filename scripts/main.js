@@ -3,6 +3,7 @@
  */
 
 import { CPRCharGenWizard } from "./cpr-chargen-wizard.js";
+import { CPRCharGenActor } from "./cpr-chargen-actor.js";
 import { CONFIG } from "./config.js";
 
 const MODULE_ID = "cyberpunk-red-character-creator";
@@ -10,7 +11,13 @@ const MODULE_ID = "cyberpunk-red-character-creator";
 Hooks.once("init", () => {
   console.log("CPR CharGen | Initializing Cyberpunk RED AI Character Creator...");
 
-  // Register Settings (Prefilled with CONFIG if local env exists)
+  // Expose global API
+  globalThis.CPRCharGen = {
+    createActor: (data) => CPRCharGenActor.createActor(data),
+    testCreateSolo: (user, folder) => CPRCharGenActor.testCreateSolo(user, folder)
+  };
+
+  // Register Settings
   game.settings.register(MODULE_ID, "apiUrl", {
     name: "vLLM / OpenAI API Endpoint",
     hint: "Base URL for the OpenAI-compatible vLLM inference server (e.g. http://localhost:8000/v1 or internal host IP).",
@@ -48,9 +55,13 @@ Hooks.once("ready", () => {
   console.log("CPR CharGen | System Ready. AI Character Creator Online.");
 });
 
-// Chat Commands: /cpr-char, /cpr-chargen, /create-char
+// Chat Commands: /cpr-char, /cpr-chargen, /create-char, /cpr-test, /chargen-test
 Hooks.on("chatMessage", (chatLog, messageText, chatData) => {
   const text = messageText.trim();
+  if (text === "/cpr-test" || text === "/chargen-test") {
+    CPRCharGenActor.testCreateSolo("Brad", "AI test");
+    return false;
+  }
   if (text.startsWith("/cpr-char") || text.startsWith("/cpr-chargen") || text.startsWith("/create-char")) {
     new CPRCharGenWizard().render(true);
     return false;
@@ -58,19 +69,28 @@ Hooks.on("chatMessage", (chatLog, messageText, chatData) => {
   return true;
 });
 
-// Add Header Button to Actor Directory
+// Add Header Buttons to Actor Directory
 Hooks.on("renderActorDirectory", (app, html, data) => {
-  const btn = $(`
-    <button type="button" class="cpr-chargen-header-btn" style="background: linear-gradient(135deg, #ff003c 0%, #990022 100%); color: #fff; border: 1px solid #ff003c; margin: 4px 0; font-weight: bold; border-radius: 4px; padding: 4px;">
-      <i class="fas fa-user-plus"></i> CPR AI Character Creator
-    </button>
+  const btnGroup = $(`
+    <div class="cpr-chargen-btn-group flexrow" style="margin: 4px 0; gap: 4px;">
+      <button type="button" class="cpr-chargen-header-btn" style="background: linear-gradient(135deg, #ff003c 0%, #990022 100%); color: #fff; border: 1px solid #ff003c; font-weight: bold; border-radius: 4px; padding: 4px 6px;">
+        <i class="fas fa-user-plus"></i> CPR AI Creator
+      </button>
+      <button type="button" class="cpr-chargen-test-btn" style="background: #1a1d29; color: #00f0ff; border: 1px solid #00f0ff; font-weight: bold; border-radius: 4px; padding: 4px 6px; flex: 0 0 auto;" title="Run Automated Test: Create Streetrat Solo under Brad in 'AI test' folder">
+        <i class="fas fa-vial"></i> AI Test
+      </button>
+    </div>
   `);
 
-  btn.on("click", () => {
+  btnGroup.find(".cpr-chargen-header-btn").on("click", () => {
     new CPRCharGenWizard().render(true);
   });
 
-  html.find(".directory-header .header-actions").append(btn);
+  btnGroup.find(".cpr-chargen-test-btn").on("click", () => {
+    CPRCharGenActor.testCreateSolo("Brad", "AI test");
+  });
+
+  html.find(".directory-header .header-actions").append(btnGroup);
 });
 
 // Add Tool to Scene Controls
