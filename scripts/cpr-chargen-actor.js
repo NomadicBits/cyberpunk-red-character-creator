@@ -70,7 +70,6 @@ export class CPRCharGenActor {
         });
 
         if (matches.length > 0) {
-          // Sort by string length difference to pick closest match
           matches.sort((a, b) => Math.abs(a.name.length - sanitizedName.length) - Math.abs(b.name.length - sanitizedName.length));
           const doc = await pack.getDocument(matches[0]._id);
           if (doc) return doc.toObject();
@@ -101,19 +100,24 @@ export class CPRCharGenActor {
       const maxHp = 10 + (5 * Math.ceil((body + will) / 2));
       const maxHumanity = emp * 10;
 
-      // 1. Create Base Actor
+      // 1. Create Base Actor with authentic Cyberpunk RED Mystery Man icon and prototype token
+      const defaultIcon = "systems/cyberpunk-red-core/icons/compendium/default/Default_CPR_Mystery_Man.svg";
       const baseActorData = {
         name: charData.name || "Night City Edge",
         type: "character",
-        img: charData.img || "icons/svg/mystery-man.svg",
-        items: [],
-        ownership: {
-          default: 0,
-          [game.user.id]: 3
+        img: charData.img || defaultIcon,
+        prototypeToken: {
+          name: charData.name || "Night City Edge",
+          actorLink: true,
+          disposition: 1,
+          bar1: { attribute: "derivedStats.hp" },
+          texture: {
+            src: charData.img || defaultIcon
+          }
         }
       };
 
-      console.log("CPR CharGen | Creating base actor...", baseActorData);
+      console.log("CPR CharGen | Creating base character actor...", baseActorData);
       const actor = await Actor.create(baseActorData);
       console.log(`CPR CharGen | Base Actor created: ${actor.name} (${actor.id})`);
 
@@ -277,7 +281,6 @@ export class CPRCharGenActor {
    * Attach official Role item to Actor
    */
   static async attachRole(actor, roleDef) {
-    // Delete any existing role items to prevent duplicates
     const existingRoles = actor.itemTypes.role || [];
     if (existingRoles.length > 0) {
       await actor.deleteEmbeddedDocuments("Item", existingRoles.map(r => r.id));
@@ -314,7 +317,7 @@ export class CPRCharGenActor {
       }
     }
 
-    // 2. Armor (Light Armorjack Body & Head SP 11 - Equipped state is "equipped" string)
+    // 2. Armor (Light Armorjack Body & Head SP 11 - Exactly ONE of each)
     const bodyArmor = await this.findCompendiumItem("Light Armorjack (Body)", "armor") || await this.findCompendiumItem("Light Armorjack Body", "armor") || await this.findCompendiumItem("Light Armorjack", "armor");
     if (bodyArmor) {
       if (bodyArmor.system && "equipped" in bodyArmor.system) {
@@ -354,13 +357,14 @@ export class CPRCharGenActor {
       }
     }
 
-    // 5. Gear & Instruments & Vehicles & Ammo
+    // 5. Gear & Instruments & Vehicles & Ammo (Strictly filter out any armor duplicates)
     const gearToFind = [...(roleDef.gear || [])];
     if (charData.chosenVehicle) gearToFind.push(charData.chosenVehicle);
     if (charData.chosenInstrument) gearToFind.push(charData.chosenInstrument);
 
     for (const gName of gearToFind) {
       if (gName.toLowerCase().includes("eurodollar") || gName.toLowerCase().includes("eb")) continue;
+      if (gName.toLowerCase().includes("armorjack") || gName.toLowerCase().includes("armor") || gName.toLowerCase().includes("helmet")) continue;
       
       const isAmmo = gName.toLowerCase().includes("ammo");
       const prefPack = isAmmo ? "ammo" : "gear";

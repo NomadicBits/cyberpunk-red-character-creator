@@ -36,7 +36,7 @@ export const CPR_ROLES = {
     ],
     baseCyberware: ["Neural Link", "Interface Plugs"],
     armor: "Light Armorjack (Head & Body SP 11)",
-    gear: ["Agent", "Light Armorjack Body", "Light Armorjack Head", "Basic Medtech Kit", "Handcuffs", "Ammo (Basic x100)", "Eurodollars (500 eb)"]
+    gear: ["Agent", "Basic Medtech Kit", "Handcuffs", "Ammo (Basic x100)"]
   },
 
   netrunner: {
@@ -71,7 +71,7 @@ export const CPR_ROLES = {
     baseCyberware: ["Neural Link", "Interface Plugs"],
     deckPrograms: ["Sword", "Armor", "Eraser", "SeeYa", "Worm", "Speedbrk"],
     armor: "Light Armorjack (Head & Body SP 11)",
-    gear: ["Cyberdeck (Standard)", "Cables", "Agent", "Light Armorjack Body", "Light Armorjack Head", "Ammo (Pistol x50)", "Memory Chips (x5)", "Eurodollars (500 eb)"]
+    gear: ["Cyberdeck (Standard)", "Cables", "Agent", "Ammo (Pistol x50)", "Memory Chips (x5)"]
   },
 
   tech: {
@@ -106,7 +106,7 @@ export const CPR_ROLES = {
     ],
     baseCyberware: [],
     armor: "Light Armorjack (Head & Body SP 11)",
-    gear: ["Tech Tool Kit", "Techscanner", "Flashlight", "Duct Tape", "Road Flares (x5)", "Agent", "Light Armorjack Body", "Light Armorjack Head", "Ammo (Basic x100)", "Eurodollars (500 eb)"]
+    gear: ["Tech Tool Kit", "Techscanner", "Flashlight", "Duct Tape", "Road Flares (x5)", "Agent", "Ammo (Basic x100)"]
   },
 
   medtech: {
@@ -141,7 +141,7 @@ export const CPR_ROLES = {
     ],
     baseCyberware: [],
     armor: "Light Armorjack (Head & Body SP 11)",
-    gear: ["Medtech Bag", "Cryopump", "Dermal Stapler", "Trauma Dermal Patches (x5)", "Speedheal Doses (x2)", "Agent", "Light Armorjack Body", "Light Armorjack Head", "Ammo (Basic x100)", "Eurodollars (500 eb)"]
+    gear: ["Medtech Bag", "Cryopump", "Dermal Stapler", "Trauma Dermal Patches (x5)", "Speedheal Doses (x2)", "Agent", "Ammo (Basic x100)"]
   },
 
   media: {
@@ -175,7 +175,7 @@ export const CPR_ROLES = {
     ],
     baseCyberware: [],
     armor: "Light Armorjack (Head & Body SP 11)",
-    gear: ["Video Camcorder (HD)", "Audio Recorder (Digital)", "Scrambler / Descrambler", "Press Pass", "Memory Chips (x10)", "Agent", "Light Armorjack Body", "Light Armorjack Head", "Ammo (Pistol x50)", "Eurodollars (500 eb)"]
+    gear: ["Video Camcorder (HD)", "Audio Recorder (Digital)", "Scrambler / Descrambler", "Press Pass", "Memory Chips (x10)", "Agent", "Ammo (Pistol x50)"]
   },
 
   exec: {
@@ -202,7 +202,7 @@ export const CPR_ROLES = {
       stealth: 2, wardrobeStyle: 4
     },
     weaponChoices: [
-      { id: "sidearm", label: "Sidearm Choice (Excellent Quality)", options: ["Very Heavy Pistol (Quality)", "Heavy Pistol (Quality)", "SMG (Quality)"] }
+      { id: "sidearm", label: "Sidearm Choice (Quality)", options: ["Very Heavy Pistol (Quality)", "Heavy Pistol (Quality)", "SMG (Quality)"] }
     ],
     corpPerkChoices: [
       { id: "execPerk", label: "Corporate Asset Choice", options: ["Corporate Conapt (Free Housing)", "Company Commute Car (Sedan)", "Junior Associate (Team Member)"] }
@@ -212,7 +212,7 @@ export const CPR_ROLES = {
     ],
     baseCyberware: [],
     armor: "Light Armorjack (Head & Body SP 11)",
-    gear: ["Deluxe Agent", "Exec Briefcase", "Exec Wardrobe", "Light Armorjack Body", "Light Armorjack Head", "Ammo (Pistol x50)", "Eurodollars (1000 eb)"]
+    gear: ["Deluxe Agent", "Exec Briefcase", "Exec Wardrobe", "Ammo (Pistol x50)"]
   },
 
   lawman: {
@@ -247,7 +247,7 @@ export const CPR_ROLES = {
     ],
     baseCyberware: [],
     armor: "Light Armorjack (Head & Body SP 11)",
-    gear: ["Law Enforcement Badge", "Handcuffs (x2)", "Flashlight", "Road Flares (x5)", "Agent", "Light Armorjack Body", "Light Armorjack Head", "Ammo (Duty x100)", "Eurodollars (500 eb)"]
+    gear: ["Law Enforcement Badge", "Handcuffs (x2)", "Flashlight", "Road Flares (x5)", "Agent", "Ammo (Duty x100)"]
   },
 
   fixer: {
@@ -281,7 +281,7 @@ export const CPR_ROLES = {
     ],
     baseCyberware: [],
     armor: "Light Armorjack (Head & Body SP 11)",
-    gear: ["Flagship Agent", "Burner Phone (x2)", "Stylish Wardrobe", "Light Armorjack Body", "Light Armorjack Head", "Ammo (Pistol x50)", "Eurodollars (800 eb)"]
+    gear: ["Flagship Agent", "Burner Phone (x2)", "Stylish Wardrobe", "Ammo (Pistol x50)"]
   },
 
   nomad: {
@@ -319,7 +319,7 @@ export const CPR_ROLES = {
     ],
     baseCyberware: [],
     armor: "Light Armorjack (Head & Body SP 11)",
-    gear: ["Vehicle Tool Kit", "Sleeping Bag & Tent", "Flashlight", "Canteen", "Agent", "Light Armorjack Body", "Light Armorjack Head", "Ammo (Basic x100)", "Eurodollars (500 eb)"]
+    gear: ["Vehicle Tool Kit", "Sleeping Bag & Tent", "Flashlight", "Canteen", "Agent", "Ammo (Basic x100)"]
   },
 
   rockerboy: {
@@ -356,7 +356,7 @@ export const CPR_ROLES = {
     ],
     baseCyberware: [],
     armor: "Light Armorjack (Head & Body SP 11)",
-    gear: ["Agent", "Stage Wardrobe", "Glow Sticks & Flares", "Audio Chips", "Light Armorjack Body", "Light Armorjack Head", "Ammo (Pistol x50)", "Eurodollars (500 eb)"]
+    gear: ["Agent", "Stage Wardrobe", "Glow Sticks & Flares", "Audio Chips", "Ammo (Pistol x50)"]
   }
 };
 
