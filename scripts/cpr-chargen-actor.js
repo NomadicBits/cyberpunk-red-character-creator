@@ -22,7 +22,7 @@ export class CPRCharGenActor {
   static async findCompendiumItem(nameToFind, preferredType = "") {
     if (!nameToFind) return null;
     
-    // Clean target ONLY removing parenthetical flavor tags, NEVER removing Body/Head/Armor locations!
+    // Clean target ONLY removing optional flavor tags, NEVER removing Body/Head/Armor locations!
     const sanitizedName = nameToFind
       .replace(/\s*\((Quality|Standard|Moto|Gear|Digital|HD|Basic x100|Pistol x50|Duty x100|x10|x5|x2|500 eb|800 eb|1000 eb)\)\s*/gi, "")
       .trim();
@@ -114,36 +114,69 @@ export class CPRCharGenActor {
   }
 
   /**
-   * Seed complete 66 CPR Core Skills onto Actor
-   * Attempts official internal_skills compendium first, with CPR_CORE_SKILLS schema fallback
+   * Prepares all 66 CPR Core Skills with their exact ranks allocated in a single pass
    */
-  static async seedCoreSkills(actor) {
-    const currentSkills = actor.itemTypes.skill || [];
-    if (currentSkills.length >= 50) return currentSkills;
+  static prepareSkillDocuments(skillAllocations = {}) {
+    const aliases = {
+      languagestreetslang: ["language", "streetslang", "languages"],
+      localexpertyourhome: ["localexpert", "yourhome", "local"],
+      shoulderarms: ["shoulderarms", "shoulder"],
+      meleeweapon: ["meleeweapon", "melee"],
+      resisttorturedrugs: ["resisttorturedrugs", "resisttorture", "resistdrugs"],
+      basictech: ["basictech", "basic"],
+      cybertech: ["cybertech"],
+      electronicssecurity: ["electronicssecuritytech", "electronicssecurity", "securitytech"],
+      weaponstech: ["weaponstech"],
+      firstaid: ["firstaid"],
+      paramedic: ["paramedic"],
+      landvehicletech: ["landvehicletech"],
+      seavehicletech: ["seavehicletech"],
+      airvehicletech: ["airvehicletech"],
+      driveland: ["drivelandvehicle", "driveland"],
+      pilotair: ["pilotairvehicle", "pilotair"],
+      pilotsea: ["pilotseavehicle", "pilotsea"],
+      humanperception: ["humanperception"],
+      wardrobestyle: ["wardrobestyle", "wardrobe"],
+      personalgrooming: ["personalgrooming", "grooming"],
+      wildernesssurvival: ["wildernesssurvival", "survival"],
+      librarysearch: ["librarysearch"],
+      lipreading: ["lipreading"],
+      pickpocket: ["pickpocket"],
+      picklock: ["picklock"],
+      playinstrument: ["playinstrument", "instrument"],
+      heavyweapons: ["heavyweapons"],
+      martialarts: ["martialarts"],
+      performanceacting: ["performanceacting", "acting", "performance"],
+      concealreveal: ["concealrevealobject", "concealreveal", "conceal"],
+      sciencechemistry: ["sciencechemistry", "chemistry"],
+      sciencecryogenics: ["sciencecryogenics", "cryogenics"]
+    };
 
-    console.log(`CPR CharGen | Seeding official skills onto ${actor.name}...`);
-    let skillsToCreate = [];
-
-    try {
-      const skillsPack = game.packs.get("cyberpunk-red-core.internal_skills");
-      if (skillsPack) {
-        const skillDocs = await skillsPack.getDocuments();
-        if (skillDocs && skillDocs.length >= 50) {
-          skillsToCreate = skillDocs.map(d => d.toObject());
+    return CPR_CORE_SKILLS.map(rawSkill => {
+      const skill = foundry.utils.duplicate(rawSkill);
+      const sClean = this.cleanKey(skill.name);
+      
+      let allocatedLevel = 0;
+      for (const [k, v] of Object.entries(skillAllocations)) {
+        const kClean = this.cleanKey(k);
+        if (sClean === kClean) {
+          allocatedLevel = parseInt(v, 10) || 0;
+          break;
+        }
+        const aliasList = aliases[kClean];
+        if (aliasList && aliasList.some(a => sClean.includes(a) || a.includes(sClean))) {
+          allocatedLevel = parseInt(v, 10) || 0;
+          break;
+        }
+        if (sClean.includes(kClean) || kClean.includes(sClean)) {
+          allocatedLevel = parseInt(v, 10) || 0;
+          break;
         }
       }
-    } catch (err) {
-      console.warn("CPR CharGen | Failed loading internal_skills compendium:", err);
-    }
 
-    if (skillsToCreate.length < 50) {
-      console.log("CPR CharGen | Using CPR_CORE_SKILLS schema fallback...");
-      skillsToCreate = CPR_CORE_SKILLS.map(s => foundry.utils.duplicate(s));
-    }
-
-    const created = await actor.createEmbeddedDocuments("Item", skillsToCreate);
-    console.log(`CPR CharGen | Attached ${created.length} core skills to ${actor.name}`);
-    return actor.itemTypes.skill;
+      skill.system.level = allocatedLevel;
+      return skill;
+    });
   }
 
   /**
@@ -197,8 +230,15 @@ export class CPRCharGenActor {
       const actor = await Actor.create(baseActorData);
       console.log(`CPR CharGen | Base Actor created: ${actor.name} (${actor.id})`);
 
-      // 2. Guarantee ALL 66 Core Skills are present on the actor
-      await this.seedCoreSkills(actor);
+      // 2. Clear any incomplete skills and create ALL 66 Core Skills with allocated ranks in ONE pass
+      const existingSkills = actor.items.filter(i => i.type === "skill");
+      if (existingSkills.length > 0) {
+        await actor.deleteEmbeddedDocuments("Item", existingSkills.map(s => s.id));
+      }
+
+      const skillsToCreate = this.prepareSkillDocuments(charData.skills || roleDef.skills);
+      await actor.createEmbeddedDocuments("Item", skillsToCreate);
+      console.log(`CPR CharGen | Embedded ${skillsToCreate.length} ranked skills into ${actor.name}`);
 
       // 3. Apply Stats, Vitals, Lifepath, and Wealth
       const updateData = {
@@ -249,13 +289,10 @@ export class CPRCharGenActor {
 
       await actor.update(updateData);
 
-      // 4. Update Skill Ranks
-      await this.applySkillRanks(actor, charData.skills || roleDef.skills);
-
-      // 5. Attach Role Item
+      // 4. Attach Role Item
       await this.attachRole(actor, roleDef);
 
-      // 6. Attach Weapons, Armor, Cyberware, Programs, and Gear
+      // 5. Attach Weapons, Armor, Cyberware, Programs, and Gear
       await this.attachGearAndChrome(actor, roleDef, charData);
 
       ui.notifications.info(`Successfully created Cyberpunk RED character: "${actor.name}"!`);
@@ -269,91 +306,10 @@ export class CPRCharGenActor {
   }
 
   /**
-   * Update skill levels on the Actor's existing skill items
-   */
-  static async applySkillRanks(actor, skillAllocations = {}) {
-    const allSkills = actor.itemTypes.skill || [];
-    const skillUpdates = [];
-
-    const aliases = {
-      languagestreetslang: ["language", "streetslang", "languages"],
-      localexpertyourhome: ["localexpert", "yourhome", "local"],
-      shoulderarms: ["shoulderarms", "shoulder"],
-      meleeweapon: ["meleeweapon", "melee"],
-      resisttorturedrugs: ["resisttorturedrugs", "resisttorture", "resistdrugs"],
-      basictech: ["basictech", "basic"],
-      cybertech: ["cybertech"],
-      electronicssecurity: ["electronicssecuritytech", "electronicssecurity", "securitytech"],
-      weaponstech: ["weaponstech"],
-      firstaid: ["firstaid"],
-      paramedic: ["paramedic"],
-      landvehicletech: ["landvehicletech"],
-      seavehicletech: ["seavehicletech"],
-      airvehicletech: ["airvehicletech"],
-      driveland: ["drivelandvehicle", "driveland"],
-      pilotair: ["pilotairvehicle", "pilotair"],
-      pilotsea: ["pilotseavehicle", "pilotsea"],
-      humanperception: ["humanperception"],
-      wardrobestyle: ["wardrobestyle", "wardrobe"],
-      personalgrooming: ["personalgrooming", "grooming"],
-      wildernesssurvival: ["wildernesssurvival", "survival"],
-      librarysearch: ["librarysearch"],
-      lipreading: ["lipreading"],
-      pickpocket: ["pickpocket"],
-      picklock: ["picklock"],
-      playinstrument: ["playinstrument", "instrument"],
-      heavyweapons: ["heavyweapons"],
-      martialarts: ["martialarts"],
-      performanceacting: ["performanceacting", "acting", "performance"],
-      concealreveal: ["concealrevealobject", "concealreveal", "conceal"]
-    };
-
-    for (const sItem of allSkills) {
-      const sClean = this.cleanKey(sItem.name);
-      
-      let allocatedLevel = 0;
-      for (const [k, v] of Object.entries(skillAllocations)) {
-        const kClean = this.cleanKey(k);
-        
-        // 1. Direct match
-        if (sClean === kClean) {
-          allocatedLevel = parseInt(v, 10) || 0;
-          break;
-        }
-
-        // 2. Alias match
-        const aliasList = aliases[kClean];
-        if (aliasList && aliasList.some(a => sClean.includes(a) || a.includes(sClean))) {
-          allocatedLevel = parseInt(v, 10) || 0;
-          break;
-        }
-
-        // 3. Substring match
-        if (sClean.includes(kClean) || kClean.includes(sClean)) {
-          allocatedLevel = parseInt(v, 10) || 0;
-          break;
-        }
-      }
-
-      if (allocatedLevel > 0) {
-        skillUpdates.push({
-          _id: sItem.id,
-          "system.level": allocatedLevel
-        });
-      }
-    }
-
-    if (skillUpdates.length > 0) {
-      await actor.updateEmbeddedDocuments("Item", skillUpdates);
-      console.log(`CPR CharGen | Updated ${skillUpdates.length} skill ranks on ${actor.name}`);
-    }
-  }
-
-  /**
    * Attach official Role item to Actor
    */
   static async attachRole(actor, roleDef) {
-    const existingRoles = actor.itemTypes.role || [];
+    const existingRoles = actor.items.filter(i => i.type === "role");
     if (existingRoles.length > 0) {
       await actor.deleteEmbeddedDocuments("Item", existingRoles.map(r => r.id));
     }
@@ -532,25 +488,25 @@ export class CPRCharGenActor {
 
     const actor = await this.createActor(testData);
 
-    // Audit Report
+    const skills = actor.items.filter(i => i.type === "skill");
     const report = {
       role: roleDef.name,
       name: actor.name,
       actorId: actor.id,
       statsPassed: actor.system.stats.int.value === testData.stats.int && actor.system.stats.ref.value === testData.stats.ref,
-      skillsCount: actor.itemTypes.skill.length,
+      skillsCount: skills.length,
       allocatedSkillsPassed: 0,
       allocatedSkillsTotal: Object.keys(roleDef.skills).length,
-      roleRank: actor.itemTypes.role[0]?.system.rank || 0,
-      weapons: actor.itemTypes.weapon.map(w => w.name).join(", "),
-      bodyArmor: actor.itemTypes.armor.find(a => a.name.includes("Body"))?.name || "MISSING",
-      headArmor: actor.itemTypes.armor.find(a => a.name.includes("Head"))?.name || "MISSING",
-      cyberwareCount: actor.itemTypes.cyberware.length
+      roleRank: actor.items.find(i => i.type === "role")?.system.rank || 0,
+      weapons: actor.items.filter(i => i.type === "weapon").map(w => w.name).join(", "),
+      bodyArmor: actor.items.find(i => i.type === "armor" && i.name.includes("Body"))?.name || "MISSING",
+      headArmor: actor.items.find(i => i.type === "armor" && i.name.includes("Head"))?.name || "MISSING",
+      cyberwareCount: actor.items.filter(i => i.type === "cyberware").length
     };
 
     for (const [sKey, expectedRank] of Object.entries(roleDef.skills)) {
       const cleanTarget = this.cleanKey(sKey);
-      const match = actor.itemTypes.skill.find(s => {
+      const match = skills.find(s => {
         const sClean = this.cleanKey(s.name);
         return sClean === cleanTarget || sClean.includes(cleanTarget) || cleanTarget.includes(sClean);
       });
