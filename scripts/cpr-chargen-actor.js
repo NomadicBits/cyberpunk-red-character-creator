@@ -230,14 +230,14 @@ export class CPRCharGenActor {
       const actor = await Actor.create(baseActorData);
       console.log(`CPR CharGen | Base Actor created: ${actor.name} (${actor.id})`);
 
-      // 2. Clear any incomplete skills and create ALL 66 Core Skills with allocated ranks in ONE pass
+      // 2. Clear any placeholder skills and create ALL 66 Core Skills with allocated ranks using cprIsMigrating bypass
       const existingSkills = actor.items.filter(i => i.type === "skill");
       if (existingSkills.length > 0) {
         await actor.deleteEmbeddedDocuments("Item", existingSkills.map(s => s.id));
       }
 
       const skillsToCreate = this.prepareSkillDocuments(charData.skills || roleDef.skills);
-      await actor.createEmbeddedDocuments("Item", skillsToCreate);
+      await actor.createEmbeddedDocuments("Item", skillsToCreate, { cprIsMigrating: true });
       console.log(`CPR CharGen | Embedded ${skillsToCreate.length} ranked skills into ${actor.name}`);
 
       // 3. Apply Stats, Vitals, Lifepath, and Wealth
@@ -319,7 +319,7 @@ export class CPRCharGenActor {
       if (roleDoc.system) {
         roleDoc.system.rank = 4;
       }
-      await actor.createEmbeddedDocuments("Item", [roleDoc]);
+      await actor.createEmbeddedDocuments("Item", [roleDoc], { cprIsMigrating: true });
       console.log(`CPR CharGen | Attached Role "${roleDoc.name}" to ${actor.name}`);
     }
   }
@@ -408,7 +408,7 @@ export class CPRCharGenActor {
     // Add all standard items
     const allEmbedded = itemsToAdd.concat(createdCyberwareDocs);
     if (allEmbedded.length > 0) {
-      const createdItems = await actor.createEmbeddedDocuments("Item", allEmbedded);
+      const createdItems = await actor.createEmbeddedDocuments("Item", allEmbedded, { cprIsMigrating: true });
       console.log(`CPR CharGen | Attached ${createdItems.length} items to ${actor.name}`);
 
       // Install newly added cyberware in actor.system.installedItems.list
