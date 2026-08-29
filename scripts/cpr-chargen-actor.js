@@ -4,6 +4,7 @@
  */
 
 import { CPR_ROLES } from "./cpr-chargen-data.js";
+import { CPR_CORE_SKILLS } from "./cpr-chargen-skills.js";
 
 export class CPRCharGenActor {
   /**
@@ -18,42 +19,67 @@ export class CPRCharGenActor {
    */
   static async findCompendiumItem(nameToFind, preferredPackPrefix = "") {
     if (!nameToFind) return null;
-    const cleanTarget = this.cleanKey(nameToFind.replace(/\s*\(.*?\)\s*/g, ""));
+    
+    // Clean target by removing common parenthetical tags
+    const sanitizedName = nameToFind
+      .replace(/\s*\((Quality|Standard|Moto|Gear|Head|Body|Melee Cyberware|Audio Recorder|Digital|HD|Radio Communicator|Targeting Scope|Virtuality|Chyron|Micro-Optics|Tele-Optics|Voice Stress Analyzer|Basic x100|Pistol x50|Duty x100|x10|x5|x2|500 eb|800 eb|1000 eb)\)\s*/gi, "")
+      .trim();
+
+    const cleanTarget = this.cleanKey(sanitizedName);
     const itemPacks = game.packs.filter(p => p.documentName === "Item");
 
+    // Sort packs: put exact core_<prefix> first, then other <prefix> packs, then rest
     itemPacks.sort((a, b) => {
+      const aId = a.metadata.id;
+      const bId = b.metadata.id;
       if (preferredPackPrefix) {
-        const aMatch = a.metadata.id.includes(preferredPackPrefix);
-        const bMatch = b.metadata.id.includes(preferredPackPrefix);
-        if (aMatch && !bMatch) return -1;
-        if (!aMatch && bMatch) return 1;
+        const aCore = aId === `cyberpunk-red-core.core_${preferredPackPrefix}`;
+        const bCore = bId === `cyberpunk-red-core.core_${preferredPackPrefix}`;
+        if (aCore && !bCore) return -1;
+        if (!aCore && bCore) return 1;
+
+        const aHasPref = aId.includes(preferredPackPrefix) && !aId.includes("branded");
+        const bHasPref = bId.includes(preferredPackPrefix) && !bId.includes("branded");
+        if (aHasPref && !bHasPref) return -1;
+        if (!aHasPref && bHasPref) return 1;
       }
       return 0;
     });
 
+    // Pass 1: Look for exact clean matches across sorted packs
     for (const pack of itemPacks) {
-      const index = await pack.getIndex({ fields: ["type", "name", "system"] });
-      
-      // 1. Exact clean match
-      let entry = index.find(i => this.cleanKey(i.name) === cleanTarget);
-      
-      // 2. Substring match
-      if (!entry) {
-        entry = index.find(i => {
+      try {
+        const index = await pack.getIndex({ fields: ["type", "name", "system"] });
+        const exactEntry = index.find(i => this.cleanKey(i.name) === cleanTarget);
+        if (exactEntry) {
+          const doc = await pack.getDocument(exactEntry._id);
+          if (doc) return doc.toObject();
+        }
+      } catch (e) {
+        // Continue searching other packs
+      }
+    }
+
+    // Pass 2: Look for substring matches across sorted packs (preferring closest length)
+    for (const pack of itemPacks) {
+      try {
+        const index = await pack.getIndex({ fields: ["type", "name", "system"] });
+        const matches = index.filter(i => {
           const cName = this.cleanKey(i.name);
           return cName.includes(cleanTarget) || cleanTarget.includes(cName);
         });
-      }
 
-      if (entry) {
-        try {
-          const doc = await pack.getDocument(entry._id);
+        if (matches.length > 0) {
+          // Sort by string length difference to pick closest match
+          matches.sort((a, b) => Math.abs(a.name.length - sanitizedName.length) - Math.abs(b.name.length - sanitizedName.length));
+          const doc = await pack.getDocument(matches[0]._id);
           if (doc) return doc.toObject();
-        } catch (e) {
-          console.warn(`CPR CharGen | Could not load document ${entry.name} from pack ${pack.metadata.id}:`, e);
         }
+      } catch (e) {
+        // Continue searching other packs
       }
     }
+
     return null;
   }
 
@@ -75,7 +101,7 @@ export class CPRCharGenActor {
       const maxHp = 10 + (5 * Math.ceil((body + will) / 2));
       const maxHumanity = emp * 10;
 
-      // 1. Create Native Base Actor (items: [] allows CPRActor.create to attach all ~66 core skills & cyberware slots)
+      // 1. Create Base Actor
       const baseActorData = {
         name: charData.name || "Night City Edge",
         type: "character",
@@ -87,11 +113,19 @@ export class CPRCharGenActor {
         }
       };
 
-      console.log("CPR CharGen | Instantiating base actor via CPRActor.create...", baseActorData);
+      console.log("CPR CharGen | Creating base actor...", baseActorData);
       const actor = await Actor.create(baseActorData);
-      console.log(`CPR CharGen | Created Native Actor with all default core skills: ${actor.name} (${actor.id})`);
+      console.log(`CPR CharGen | Base Actor created: ${actor.name} (${actor.id})`);
 
-      // 2. Apply Stats, Vitals, Lifepath, and Wealth via update
+      // 2. Ensure ALL 66 Core Skills are present on the actor
+      const existingSkills = actor.itemTypes.skill || [];
+      if (existingSkills.length < 50) {
+        console.log(`CPR CharGen | Seeding all 66 official core skills onto ${actor.name}...`);
+        const skillsToCreate = CPR_CORE_SKILLS.map(s => foundry.utils.duplicate(s));
+        await actor.createEmbeddedDocuments("Item", skillsToCreate);
+      }
+
+      // 3. Apply Stats, Vitals, Lifepath, and Wealth
       const updateData = {
         "system.stats.int.value": stats.int,
         "system.stats.int.max": stats.int,
@@ -135,18 +169,18 @@ export class CPRCharGenActor {
 
         "system.information.alias": charData.name || "Street Samurai",
         "system.information.history": charData.backstory || "<p>Hit the streets in 2045.</p>",
-        "system.wealth.cash": charData.startingCash || 500
+        "system.wealth.cash": charData.startingCash || (roleKey === "exec" ? 1000 : (roleKey === "fixer" ? 800 : 500))
       };
 
       await actor.update(updateData);
 
-      // 3. Update Skill Ranks on the actor's loaded skill items
+      // 4. Update Skill Ranks
       await this.applySkillRanks(actor, charData.skills || roleDef.skills);
 
-      // 4. Attach Role Item (e.g. Solo, Netrunner, Tech, etc.)
+      // 5. Attach Role Item (cleaning any old role duplicates first)
       await this.attachRole(actor, roleDef);
 
-      // 5. Attach Weapons, Armor, Cyberware, Programs, and Gear
+      // 6. Attach Weapons, Armor, Cyberware, Programs, and Gear
       await this.attachGearAndChrome(actor, roleDef, charData);
 
       ui.notifications.info(`Successfully created Cyberpunk RED character: "${actor.name}"!`);
@@ -166,7 +200,6 @@ export class CPRCharGenActor {
     const allSkills = actor.itemTypes.skill || [];
     const skillUpdates = [];
 
-    // Specific key aliases mapping
     const aliases = {
       languagestreetslang: ["language", "streetslang", "languages"],
       localexpertyourhome: ["localexpert", "yourhome", "local"],
@@ -195,7 +228,8 @@ export class CPRCharGenActor {
       picklock: ["picklock"],
       playinstrument: ["playinstrument", "instrument"],
       heavyweapons: ["heavyweapons"],
-      martialarts: ["martialarts"]
+      martialarts: ["martialarts"],
+      performanceacting: ["performanceacting", "acting", "performance"]
     };
 
     for (const sItem of allSkills) {
@@ -243,6 +277,12 @@ export class CPRCharGenActor {
    * Attach official Role item to Actor
    */
   static async attachRole(actor, roleDef) {
+    // Delete any existing role items to prevent duplicates
+    const existingRoles = actor.itemTypes.role || [];
+    if (existingRoles.length > 0) {
+      await actor.deleteEmbeddedDocuments("Item", existingRoles.map(r => r.id));
+    }
+
     const roleDoc = await this.findCompendiumItem(roleDef.name, "roles");
     if (roleDoc) {
       if (roleDoc.system) {
