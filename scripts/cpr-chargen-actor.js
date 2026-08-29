@@ -314,13 +314,17 @@ export class CPRCharGenActor {
       }
     }
 
-    // 5. Gear & Instruments & Vehicles
+    // 5. Gear & Instruments & Vehicles & Ammo
     const gearToFind = [...(roleDef.gear || [])];
     if (charData.chosenVehicle) gearToFind.push(charData.chosenVehicle);
     if (charData.chosenInstrument) gearToFind.push(charData.chosenInstrument);
 
     for (const gName of gearToFind) {
-      const gDoc = await this.findCompendiumItem(gName, "gear");
+      if (gName.toLowerCase().includes("eurodollar") || gName.toLowerCase().includes("eb")) continue;
+      
+      const isAmmo = gName.toLowerCase().includes("ammo");
+      const prefPack = isAmmo ? "ammo" : "gear";
+      const gDoc = await this.findCompendiumItem(gName, prefPack);
       if (gDoc) {
         if (gDoc.system && "equipped" in gDoc.system) {
           gDoc.system.equipped = "carried";
