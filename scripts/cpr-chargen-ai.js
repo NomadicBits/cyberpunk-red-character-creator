@@ -5,6 +5,8 @@
 
 import { CONFIG } from "./config.js";
 
+let cachedWorkingUrl = null;
+
 function cleanCommand(cmd) {
   if (!cmd) return "";
   let s = cmd.trim();
@@ -38,8 +40,14 @@ function extractJson(text) {
 
 export class CPRCharGenAI {
   static getApiUrl() {
-    const url = game.settings.get("cyberpunk-red-character-creator", "apiUrl") || CONFIG.apiUrl || "http://localhost:8000/v1";
-    return url.replace(/\/+$/, "");
+    const settingUrl = game.settings.get("cyberpunk-red-character-creator", "apiUrl");
+    if (settingUrl && settingUrl !== "http://localhost:8000/v1") {
+      return settingUrl.replace(/\/+$/, "");
+    }
+    if (CONFIG.apiUrl) {
+      return CONFIG.apiUrl.replace(/\/+$/, "");
+    }
+    return (settingUrl || "http://localhost:8000/v1").replace(/\/+$/, "");
   }
 
   static getModel() {
@@ -51,14 +59,25 @@ export class CPRCharGenAI {
   }
 
   static async complete(messages, options = {}) {
-    const rawUrl = this.getApiUrl();
+    const configuredUrl = this.getApiUrl();
     const model = this.getModel();
     const apiKey = this.getApiKey();
 
-    const isHttps = typeof window !== "undefined" && window.location.protocol === "https:";
-    const urlsToTry = isHttps
-      ? [rawUrl]
-      : [rawUrl, "http://localhost:8000/v1"];
+    // Candidate endpoints
+    const candidateUrls = [];
+    if (cachedWorkingUrl) candidateUrls.push(cachedWorkingUrl);
+    if (CONFIG.apiUrl && !candidateUrls.includes(CONFIG.apiUrl.replace(/\/+$/, ""))) {
+      candidateUrls.push(CONFIG.apiUrl.replace(/\/+$/, ""));
+    }
+    if (CONFIG.candidateUrls && Array.isArray(CONFIG.candidateUrls)) {
+      for (const u of CONFIG.candidateUrls) {
+        const clean = u.replace(/\/+$/, "");
+        if (!candidateUrls.includes(clean)) candidateUrls.push(clean);
+      }
+    }
+    if (configuredUrl && !candidateUrls.includes(configuredUrl)) {
+      candidateUrls.push(configuredUrl);
+    }
 
     const payload = {
       model: options.model || model,
@@ -69,7 +88,7 @@ export class CPRCharGenAI {
     };
 
     let lastError = null;
-    for (const u of urlsToTry) {
+    for (const u of candidateUrls) {
       try {
         console.log(`CPR CharGen | Connecting to LLM endpoint: ${u}/chat/completions`);
         const res = await fetch(`${u}/chat/completions`, {
@@ -87,6 +106,7 @@ export class CPRCharGenAI {
         }
 
         const json = await res.json();
+        cachedWorkingUrl = u;
         return json.choices?.[0]?.message?.content || "";
       } catch (err) {
         lastError = err;

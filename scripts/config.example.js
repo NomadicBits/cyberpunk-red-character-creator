@@ -12,6 +12,12 @@ export const LOCAL_CONFIG = {
   // Base URL for the OpenAI-compatible vLLM / Ollama server
   apiUrl: "http://localhost:8000/v1",
 
+  // Candidate URLs tried sequentially if primary is unreachable
+  candidateUrls: [
+    "http://localhost:8000/v1",
+    "http://127.0.0.1:8000/v1"
+  ],
+
   // Active Model identifier
   model: "nvidia/Llama-3.3-70B-Instruct-NVFP4",
 
