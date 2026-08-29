@@ -19,10 +19,8 @@ export class CPRCharGenActor {
   static async findCompendiumItem(nameToFind, preferredPackPrefix = "") {
     if (!nameToFind) return null;
     const cleanTarget = this.cleanKey(nameToFind.replace(/\s*\(.*?\)\s*/g, ""));
-    const rawTarget = nameToFind.toLowerCase().replace(/\s*\(.*?\)\s*/g, "").trim();
-
-    // Sort packs so preferred packs come first
     const itemPacks = game.packs.filter(p => p.documentName === "Item");
+
     itemPacks.sort((a, b) => {
       if (preferredPackPrefix) {
         const aMatch = a.metadata.id.includes(preferredPackPrefix);
@@ -76,7 +74,7 @@ export class CPRCharGenActor {
     const maxHp = 10 + (5 * Math.ceil((body + will) / 2));
     const maxHumanity = emp * 10;
 
-    // 1. Prepare Base Actor Document
+    // 1. Create Native Base Actor (WITHOUT passing system so CPRActor.create automatically attaches all ~66 core skills & cyberware slots)
     const baseActorData = {
       name: charData.name || "Night City Edge",
       type: "character",
@@ -84,59 +82,68 @@ export class CPRCharGenActor {
       ownership: {
         default: 0,
         [game.user.id]: 3
-      },
-      system: {
-        stats: {
-          int: { value: stats.int, max: stats.int },
-          ref: { value: stats.ref, max: stats.ref },
-          dex: { value: stats.dex, max: stats.dex },
-          tech: { value: stats.tech, max: stats.tech },
-          cool: { value: stats.cool, max: stats.cool },
-          will: { value: stats.will, max: stats.will },
-          luck: { value: stats.luck, max: stats.luck },
-          move: { value: stats.move, max: stats.move },
-          body: { value: stats.body, max: stats.body },
-          emp: { value: stats.emp, max: stats.emp }
-        },
-        derivedStats: {
-          hp: { value: maxHp, max: maxHp },
-          humanity: { value: maxHumanity, max: maxHumanity }
-        },
-        lifepath: {
-          culturalOrigin: charData.lifepath?.culturalOrigin || "",
-          personality: charData.lifepath?.personality || "",
-          clothingStyle: charData.lifepath?.clothingStyle || "",
-          hairStyle: charData.lifepath?.hairStyle || "",
-          affections: charData.lifepath?.affectation || "",
-          valueMost: charData.lifepath?.valueMost || "",
-          aboutPeople: charData.lifepath?.aboutPeople || "",
-          familyBackground: charData.lifepath?.familyBackground || "",
-          familyCrisis: charData.lifepath?.familyCrisis || "",
-          lifeGoals: charData.lifepath?.lifeGoals || "",
-          friends: charData.lifepath?.friend ? `${charData.lifepath.friend.who}: ${charData.lifepath.friend.relationship}` : "",
-          enemies: charData.lifepath?.enemy ? `${charData.lifepath.enemy.who} (${charData.lifepath.enemy.cause})` : "",
-          tragicLoveAffairs: charData.lifepath?.tragicLove || ""
-        },
-        information: {
-          alias: charData.name || "Street Samurai",
-          history: charData.backstory || "<p>Hit the streets in 2045.</p>"
-        },
-        wealth: {
-          cash: charData.startingCash || 500
-        }
       }
     };
 
     const actor = await Actor.create(baseActorData);
-    console.log(`CPR CharGen | Created Base Actor: ${actor.name} (${actor.id})`);
+    console.log(`CPR CharGen | Created Native Actor with all default core skills: ${actor.name} (${actor.id})`);
 
-    // 2. Load Core Skills and Attach to Actor
-    await this.setupSkills(actor, charData.skills || roleDef.skills);
+    // 2. Apply Stats, Vitals, Lifepath, and Wealth via update
+    const updateData = {
+      "system.stats.int.value": stats.int,
+      "system.stats.int.max": stats.int,
+      "system.stats.ref.value": stats.ref,
+      "system.stats.ref.max": stats.ref,
+      "system.stats.dex.value": stats.dex,
+      "system.stats.dex.max": stats.dex,
+      "system.stats.tech.value": stats.tech,
+      "system.stats.tech.max": stats.tech,
+      "system.stats.cool.value": stats.cool,
+      "system.stats.cool.max": stats.cool,
+      "system.stats.will.value": stats.will,
+      "system.stats.will.max": stats.will,
+      "system.stats.luck.value": stats.luck,
+      "system.stats.luck.max": stats.luck,
+      "system.stats.move.value": stats.move,
+      "system.stats.move.max": stats.move,
+      "system.stats.body.value": stats.body,
+      "system.stats.body.max": stats.body,
+      "system.stats.emp.value": stats.emp,
+      "system.stats.emp.max": stats.emp,
 
-    // 3. Attach Role Item (e.g. Solo, Netrunner, Tech, etc.)
+      "system.derivedStats.hp.value": maxHp,
+      "system.derivedStats.hp.max": maxHp,
+      "system.derivedStats.humanity.value": maxHumanity,
+      "system.derivedStats.humanity.max": maxHumanity,
+
+      "system.lifepath.culturalOrigin": charData.lifepath?.culturalOrigin || "",
+      "system.lifepath.personality": charData.lifepath?.personality || "",
+      "system.lifepath.clothingStyle": charData.lifepath?.clothingStyle || "",
+      "system.lifepath.hairStyle": charData.lifepath?.hairStyle || "",
+      "system.lifepath.affections": charData.lifepath?.affectation || "",
+      "system.lifepath.valueMost": charData.lifepath?.valueMost || "",
+      "system.lifepath.aboutPeople": charData.lifepath?.aboutPeople || "",
+      "system.lifepath.familyBackground": charData.lifepath?.familyBackground || "",
+      "system.lifepath.familyCrisis": charData.lifepath?.familyCrisis || "",
+      "system.lifepath.lifeGoals": charData.lifepath?.lifeGoals || "",
+      "system.lifepath.friends": charData.lifepath?.friend ? `${charData.lifepath.friend.who}: ${charData.lifepath.friend.relationship}` : "",
+      "system.lifepath.enemies": charData.lifepath?.enemy ? `${charData.lifepath.enemy.who} (${charData.lifepath.enemy.cause})` : "",
+      "system.lifepath.tragicLoveAffairs": charData.lifepath?.tragicLove || "",
+
+      "system.information.alias": charData.name || "Street Samurai",
+      "system.information.history": charData.backstory || "<p>Hit the streets in 2045.</p>",
+      "system.wealth.cash": charData.startingCash || 500
+    };
+
+    await actor.update(updateData);
+
+    // 3. Update Skill Ranks on the actor's loaded skill items
+    await this.applySkillRanks(actor, charData.skills || roleDef.skills);
+
+    // 4. Attach Role Item (e.g. Solo, Netrunner, Tech, etc.)
     await this.attachRole(actor, roleDef);
 
-    // 4. Attach Weapons, Armor, Cyberware, Programs, and Gear
+    // 5. Attach Weapons, Armor, Cyberware, Programs, and Gear
     await this.attachGearAndChrome(actor, roleDef, charData);
 
     ui.notifications.info(`Successfully created Cyberpunk RED character: "${actor.name}"!`);
@@ -145,55 +152,72 @@ export class CPRCharGenActor {
   }
 
   /**
-   * Load and populate all core skill documents on the Actor with configured levels
+   * Update skill levels on the Actor's existing skill items
    */
-  static async setupSkills(actor, skillAllocations = {}) {
-    // 1. Fetch core skills pack
-    const skillPack = game.packs.get(`${game.system.id}.internal_skills`);
-    let coreSkillDocs = [];
-    if (skillPack) {
-      coreSkillDocs = await skillPack.getDocuments();
-    }
-
-    // 2. Create skills on actor if not already present
-    const existingSkills = actor.itemTypes.skill || [];
-    const skillsToCreate = [];
-
-    // Map existing skills by clean name
-    const existingMap = new Map();
-    existingSkills.forEach(s => existingMap.set(this.cleanKey(s.name), s));
-
-    for (const sDoc of coreSkillDocs) {
-      const cleanName = this.cleanKey(sDoc.name);
-      if (!existingMap.has(cleanName)) {
-        const sObj = sDoc.toObject();
-        skillsToCreate.push(sObj);
-      }
-    }
-
-    if (skillsToCreate.length > 0) {
-      await actor.createEmbeddedDocuments("Item", skillsToCreate);
-      console.log(`CPR CharGen | Created ${skillsToCreate.length} core skill items on ${actor.name}`);
-    }
-
-    // 3. Update skill levels from character data
+  static async applySkillRanks(actor, skillAllocations = {}) {
     const allSkills = actor.itemTypes.skill || [];
     const skillUpdates = [];
+
+    // Specific key aliases mapping
+    const aliases = {
+      languagestreetslang: ["language", "streetslang", "languages"],
+      localexpertyourhome: ["localexpert", "yourhome", "local"],
+      shoulderarms: ["shoulderarms", "shoulder"],
+      meleeweapon: ["meleeweapon", "melee"],
+      resisttorturedrugs: ["resisttorturedrugs", "resisttorture", "resistdrugs"],
+      basictech: ["basictech", "basic"],
+      cybertech: ["cybertech"],
+      electronicssecurity: ["electronicssecuritytech", "electronicssecurity", "securitytech"],
+      weaponstech: ["weaponstech"],
+      firstaid: ["firstaid"],
+      paramedic: ["paramedic"],
+      landvehicletech: ["landvehicletech"],
+      seavehicletech: ["seavehicletech"],
+      airvehicletech: ["airvehicletech"],
+      driveland: ["drivelandvehicle", "driveland"],
+      pilotair: ["pilotairvehicle", "pilotair"],
+      pilotsea: ["pilotseavehicle", "pilotsea"],
+      humanperception: ["humanperception"],
+      wardrobestyle: ["wardrobestyle", "wardrobe"],
+      personalgrooming: ["personalgrooming", "grooming"],
+      wildernesssurvival: ["wildernesssurvival", "survival"],
+      librarysearch: ["librarysearch"],
+      lipreading: ["lipreading"],
+      pickpocket: ["pickpocket"],
+      picklock: ["picklock"],
+      playinstrument: ["playinstrument", "instrument"],
+      heavyweapons: ["heavyweapons"],
+      martialarts: ["martialarts"]
+    };
 
     for (const sItem of allSkills) {
       const sClean = this.cleanKey(sItem.name);
       
-      // Match against skillAllocations keys (e.g. "shoulderArms" or "athletics")
       let allocatedLevel = 0;
       for (const [k, v] of Object.entries(skillAllocations)) {
         const kClean = this.cleanKey(k);
-        if (sClean === kClean || sClean.includes(kClean) || kClean.includes(sClean)) {
+        
+        // 1. Direct match
+        if (sClean === kClean) {
+          allocatedLevel = parseInt(v, 10) || 0;
+          break;
+        }
+
+        // 2. Alias match
+        const aliasList = aliases[kClean];
+        if (aliasList && aliasList.some(a => sClean.includes(a) || a.includes(sClean))) {
+          allocatedLevel = parseInt(v, 10) || 0;
+          break;
+        }
+
+        // 3. Substring match
+        if (sClean.includes(kClean) || kClean.includes(sClean)) {
           allocatedLevel = parseInt(v, 10) || 0;
           break;
         }
       }
 
-      if (allocatedLevel > 0 || sItem.system.level !== allocatedLevel) {
+      if (allocatedLevel > 0) {
         skillUpdates.push({
           _id: sItem.id,
           "system.level": allocatedLevel
@@ -213,7 +237,6 @@ export class CPRCharGenActor {
   static async attachRole(actor, roleDef) {
     const roleDoc = await this.findCompendiumItem(roleDef.name, "roles");
     if (roleDoc) {
-      // Set starting role ability rank to 4
       if (roleDoc.system) {
         roleDoc.system.rank = 4;
       }
