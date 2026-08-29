@@ -53,7 +53,6 @@ export class CPRCharGenActor {
         for (const entry of index) {
           // Strict Type Guard
           if (preferredType && entry.type !== preferredType) {
-            // Allow gear / tool overlap
             if (preferredType === "gear" && (entry.type === "item" || entry.type === "tool")) {
               // allowed
             } else {
@@ -442,9 +441,49 @@ export class CPRCharGenActor {
   }
 
   /**
+   * Bulk Cleanup Helper: Deletes all test actors (named "V", "V8", "Streetrat Solo", etc.)
+   * or actors in the "AI test" folder belonging to the user.
+   *
+   * @param {string} userName Target user name (defaults to "Brad")
+   * @param {string} folderName Target folder name (defaults to "AI test")
+   * @returns {Promise<number>} Number of actors deleted
+   */
+  static async cleanTestActors(userName = "Brad", folderName = "AI test") {
+    const targetUser = game.users.find(u => u.name.toLowerCase() === userName.toLowerCase());
+    const folder = game.folders.find(f => f.type === "Actor" && f.name.toLowerCase() === folderName.toLowerCase());
+
+    const actorsToDelete = game.actors.filter(a => {
+      // Check folder match
+      if (folder && a.folder?.id === folder.id) return true;
+
+      // Check name pattern matches for test actors
+      const isTestName = a.name === "V" || a.name.startsWith("V ") || a.name.startsWith("V") && a.name.length <= 3 || a.name.startsWith("Streetrat Solo") || a.name.startsWith("test");
+      if (isTestName) {
+        if (targetUser && a.testUserPermission(targetUser, "OWNER")) return true;
+        if (game.user.isGM) return true;
+      }
+      return false;
+    });
+
+    console.log(`CPR CharGen Clean | Found ${actorsToDelete.length} test actors to delete...`);
+    for (const a of actorsToDelete) {
+      try {
+        console.log(`CPR CharGen Clean | Deleting actor "${a.name}" (${a.id})...`);
+        await a.delete();
+      } catch (err) {
+        console.warn(`CPR CharGen Clean | Could not delete actor "${a.name}":`, err);
+      }
+    }
+
+    ui.notifications.info(`Cleaned up ${actorsToDelete.length} test actors!`);
+    return actorsToDelete.length;
+  }
+
+  /**
    * Automated Test Runner:
-   * Generates a Streetrat Solo under a specified user in a dedicated folder,
-   * then performs a comprehensive validation audit on the created Actor document.
+   * 1. Cleans out any existing test actors from the "AI test" folder and Brad account.
+   * 2. Generates a fresh Streetrat Solo under Brad in "AI test".
+   * 3. Performs a complete validation audit.
    *
    * @param {string} userName Target user name (defaults to "Brad")
    * @param {string} folderName Target folder name (defaults to "AI test")
@@ -468,7 +507,10 @@ export class CPRCharGenActor {
     const targetUser = game.users.find(u => u.name.toLowerCase() === userName.toLowerCase()) || game.user;
     console.log(`CPR CharGen Test | Target User: "${targetUser.name}" (${targetUser.id})`);
 
-    // 3. Build Streetrat Solo configuration
+    // 3. Clear out existing test actors from folder first
+    await this.cleanTestActors(userName, folderName);
+
+    // 4. Build Streetrat Solo configuration
     const soloRole = CPR_ROLES.solo;
     const testData = {
       name: `Streetrat Solo (${targetUser.name})`,
@@ -498,10 +540,10 @@ export class CPRCharGenActor {
       startingCash: 500
     };
 
-    // 4. Instantiate Actor
+    // 5. Instantiate Actor
     const actor = await this.createActor(testData);
 
-    // 5. Perform Comprehensive Sheet Audit
+    // 6. Perform Comprehensive Sheet Audit
     const audit = {
       actorId: actor.id,
       name: actor.name,
