@@ -237,7 +237,8 @@ export class CPRCharGenWizard extends FormApplication {
    */
   async _updateObject(event, formData) {
     const roleDef = CPR_ROLES[this.charData.selectedRole] || CPR_ROLES.solo;
-    const stats = roleDef.statTemplates[this.charData.selectedTemplateIndex] || roleDef.statTemplates[0];
+    const templateIdx = formData.statTemplateIndex !== undefined ? parseInt(formData.statTemplateIndex, 10) : this.charData.selectedTemplateIndex;
+    const stats = roleDef.statTemplates[templateIdx] || roleDef.statTemplates[0];
 
     // Collect Chosen Weapons & Cyberware
     const chosenWeapons = [];
@@ -263,17 +264,17 @@ export class CPRCharGenWizard extends FormApplication {
       chosenPerk: formData.corpPerkChoice_execPerk,
       chosenInstrument: formData.instrumentChoice_rockerInstrument,
       lifepath: {
-        culturalOrigin: formData.lp_culturalOrigin,
-        personality: formData.lp_personality,
-        clothingStyle: formData.lp_clothingStyle,
-        hairStyle: formData.lp_hairStyle,
-        affectation: formData.lp_affectation,
-        familyBackground: formData.lp_familyBackground,
-        familyCrisis: formData.lp_familyCrisis,
-        lifeGoals: formData.lp_lifeGoals,
-        friend: { who: "Friend", relationship: formData.lp_friend },
-        enemy: { who: "Enemy", cause: formData.lp_enemy },
-        tragicLove: formData.lp_tragicLove
+        culturalOrigin: formData.lp_culturalOrigin || this.charData.lifepath?.culturalOrigin,
+        personality: formData.lp_personality || this.charData.lifepath?.personality,
+        clothingStyle: formData.lp_clothingStyle || this.charData.lifepath?.clothingStyle,
+        hairStyle: formData.lp_hairStyle || this.charData.lifepath?.hairStyle,
+        affectation: formData.lp_affectation || this.charData.lifepath?.affectation,
+        familyBackground: formData.lp_familyBackground || this.charData.lifepath?.familyBackground,
+        familyCrisis: formData.lp_familyCrisis || this.charData.lifepath?.familyCrisis,
+        lifeGoals: formData.lp_lifeGoals || this.charData.lifepath?.lifeGoals,
+        friend: { who: "Friend", relationship: formData.lp_friend || this.charData.lifepath?.friendText },
+        enemy: { who: "Enemy", cause: formData.lp_enemy || this.charData.lifepath?.enemyText },
+        tragicLove: formData.lp_tragicLove || this.charData.lifepath?.tragicLove
       },
       backstory: formData.backstory || this.charData.backstory,
       startingCash: roleDef.name === "Exec" ? 1000 : (roleDef.name === "Fixer" ? 800 : 500)
