@@ -75,12 +75,12 @@ export class CPRCharGenActor {
       const maxHp = 10 + (5 * Math.ceil((body + will) / 2));
       const maxHumanity = emp * 10;
 
-      // 1. Create Base Actor passing items: [] so CPRActor.create's data.items.concat succeeds!
+      // 1. Create Native Base Actor (items: [] allows CPRActor.create to attach all ~66 core skills & cyberware slots)
       const baseActorData = {
         name: charData.name || "Night City Edge",
         type: "character",
         img: charData.img || "icons/svg/mystery-man.svg",
-        items: [], // CRITICAL: CPRActor.create requires data.items to be an array
+        items: [],
         ownership: {
           default: 0,
           [game.user.id]: 3
@@ -259,7 +259,7 @@ export class CPRCharGenActor {
   static async attachGearAndChrome(actor, roleDef, charData) {
     const itemsToAdd = [];
 
-    // 1. Weapons
+    // 1. Weapons (Equipped state is "equipped" string)
     const weaponsToFind = (charData.chosenWeapons && charData.chosenWeapons.length > 0)
       ? charData.chosenWeapons
       : (roleDef.weaponChoices ? roleDef.weaponChoices.map(wc => wc.options[0]) : []);
@@ -267,33 +267,42 @@ export class CPRCharGenActor {
     for (const wName of weaponsToFind) {
       const wDoc = await this.findCompendiumItem(wName, "weapons");
       if (wDoc) {
-        wDoc.system.equipped = true;
+        if (wDoc.system && "equipped" in wDoc.system) {
+          wDoc.system.equipped = "equipped";
+        }
         itemsToAdd.push(wDoc);
       }
     }
 
-    // 2. Armor (Light Armorjack Body & Head SP 11)
+    // 2. Armor (Light Armorjack Body & Head SP 11 - Equipped state is "equipped" string)
     const bodyArmor = await this.findCompendiumItem("Light Armorjack (Body)", "armor") || await this.findCompendiumItem("Light Armorjack Body", "armor") || await this.findCompendiumItem("Light Armorjack", "armor");
     if (bodyArmor) {
-      bodyArmor.system.equipped = true;
+      if (bodyArmor.system && "equipped" in bodyArmor.system) {
+        bodyArmor.system.equipped = "equipped";
+      }
       itemsToAdd.push(bodyArmor);
     }
     const headArmor = await this.findCompendiumItem("Light Armorjack (Head)", "armor") || await this.findCompendiumItem("Light Armorjack Head", "armor");
     if (headArmor) {
-      headArmor.system.equipped = true;
+      if (headArmor.system && "equipped" in headArmor.system) {
+        headArmor.system.equipped = "equipped";
+      }
       itemsToAdd.push(headArmor);
     }
 
-    // 3. Cyberware
+    // 3. Cyberware (Installable items)
     const cyberToFind = (charData.chosenCyberware && charData.chosenCyberware.length > 0)
       ? charData.chosenCyberware
       : (roleDef.baseCyberware || []);
 
+    const createdCyberwareDocs = [];
     for (const cName of cyberToFind) {
       const cDoc = await this.findCompendiumItem(cName, "cyberware");
       if (cDoc) {
-        cDoc.system.installed = true;
-        itemsToAdd.push(cDoc);
+        if (cDoc.system && "equipped" in cDoc.system) {
+          cDoc.system.equipped = "equipped";
+        }
+        createdCyberwareDocs.push(cDoc);
       }
     }
 
@@ -312,12 +321,30 @@ export class CPRCharGenActor {
 
     for (const gName of gearToFind) {
       const gDoc = await this.findCompendiumItem(gName, "gear");
-      if (gDoc) itemsToAdd.push(gDoc);
+      if (gDoc) {
+        if (gDoc.system && "equipped" in gDoc.system) {
+          gDoc.system.equipped = "carried";
+        }
+        itemsToAdd.push(gDoc);
+      }
     }
 
-    if (itemsToAdd.length > 0) {
-      await actor.createEmbeddedDocuments("Item", itemsToAdd);
-      console.log(`CPR CharGen | Attached ${itemsToAdd.length} equipment and cyberware items to ${actor.name}`);
+    // Add all standard items
+    const allEmbedded = itemsToAdd.concat(createdCyberwareDocs);
+    if (allEmbedded.length > 0) {
+      const createdItems = await actor.createEmbeddedDocuments("Item", allEmbedded);
+      console.log(`CPR CharGen | Attached ${createdItems.length} items to ${actor.name}`);
+
+      // Install newly added cyberware in actor.system.installedItems.list
+      const cyberItems = createdItems.filter(i => i.type === "cyberware");
+      if (cyberItems.length > 0) {
+        const currentList = Array.from(actor.system.installedItems?.list || []);
+        cyberItems.forEach(ci => {
+          if (!currentList.includes(ci.id)) currentList.push(ci.id);
+        });
+        await actor.update({ "system.installedItems.list": currentList });
+        console.log(`CPR CharGen | Installed ${cyberItems.length} cyberware items into ${actor.name}`);
+      }
     }
   }
 }
