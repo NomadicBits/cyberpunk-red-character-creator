@@ -22,9 +22,9 @@ export class CPRCharGenActor {
   static async findCompendiumItem(nameToFind, preferredType = "") {
     if (!nameToFind) return null;
     
-    // Clean target by removing common parenthetical tags
+    // Clean target ONLY removing parenthetical flavor tags, NEVER removing Body/Head/Armor locations!
     const sanitizedName = nameToFind
-      .replace(/\s*\((Quality|Standard|Moto|Gear|Head|Body|Melee Cyberware|Audio Recorder|Digital|HD|Radio Communicator|Targeting Scope|Virtuality|Chyron|Micro-Optics|Tele-Optics|Voice Stress Analyzer|Basic x100|Pistol x50|Duty x100|x10|x5|x2|500 eb|800 eb|1000 eb)\)\s*/gi, "")
+      .replace(/\s*\((Quality|Standard|Moto|Gear|Digital|HD|Basic x100|Pistol x50|Duty x100|x10|x5|x2|500 eb|800 eb|1000 eb)\)\s*/gi, "")
       .trim();
 
     const cleanTarget = this.cleanKey(sanitizedName);
@@ -114,6 +114,39 @@ export class CPRCharGenActor {
   }
 
   /**
+   * Seed complete 66 CPR Core Skills onto Actor
+   * Attempts official internal_skills compendium first, with CPR_CORE_SKILLS schema fallback
+   */
+  static async seedCoreSkills(actor) {
+    const currentSkills = actor.itemTypes.skill || [];
+    if (currentSkills.length >= 50) return currentSkills;
+
+    console.log(`CPR CharGen | Seeding official skills onto ${actor.name}...`);
+    let skillsToCreate = [];
+
+    try {
+      const skillsPack = game.packs.get("cyberpunk-red-core.internal_skills");
+      if (skillsPack) {
+        const skillDocs = await skillsPack.getDocuments();
+        if (skillDocs && skillDocs.length >= 50) {
+          skillsToCreate = skillDocs.map(d => d.toObject());
+        }
+      }
+    } catch (err) {
+      console.warn("CPR CharGen | Failed loading internal_skills compendium:", err);
+    }
+
+    if (skillsToCreate.length < 50) {
+      console.log("CPR CharGen | Using CPR_CORE_SKILLS schema fallback...");
+      skillsToCreate = CPR_CORE_SKILLS.map(s => foundry.utils.duplicate(s));
+    }
+
+    const created = await actor.createEmbeddedDocuments("Item", skillsToCreate);
+    console.log(`CPR CharGen | Attached ${created.length} core skills to ${actor.name}`);
+    return actor.itemTypes.skill;
+  }
+
+  /**
    * Build and instantiate a new Character Actor in Foundry VTT
    * @param {Object} charData Complete character configuration
    * @returns {Promise<Actor>}
@@ -165,13 +198,7 @@ export class CPRCharGenActor {
       console.log(`CPR CharGen | Base Actor created: ${actor.name} (${actor.id})`);
 
       // 2. Guarantee ALL 66 Core Skills are present on the actor
-      let currentSkills = actor.itemTypes.skill || [];
-      if (currentSkills.length < 50) {
-        console.log(`CPR CharGen | Seeding complete 66 core skill set onto ${actor.name}...`);
-        const skillsToCreate = CPR_CORE_SKILLS.map(s => foundry.utils.duplicate(s));
-        const createdDocs = await actor.createEmbeddedDocuments("Item", skillsToCreate);
-        console.log(`CPR CharGen | Embedded ${createdDocs.length} skills onto ${actor.name}`);
-      }
+      await this.seedCoreSkills(actor);
 
       // 3. Apply Stats, Vitals, Lifepath, and Wealth
       const updateData = {
@@ -277,7 +304,8 @@ export class CPRCharGenActor {
       playinstrument: ["playinstrument", "instrument"],
       heavyweapons: ["heavyweapons"],
       martialarts: ["martialarts"],
-      performanceacting: ["performanceacting", "acting", "performance"]
+      performanceacting: ["performanceacting", "acting", "performance"],
+      concealreveal: ["concealrevealobject", "concealreveal", "conceal"]
     };
 
     for (const sItem of allSkills) {
@@ -441,86 +469,48 @@ export class CPRCharGenActor {
   }
 
   /**
-   * Bulk Cleanup Helper: Deletes all test actors (named "V", "V8", "Streetrat Solo", etc.)
-   * or actors in the "AI test" folder belonging to the user.
+   * STRICT Cleanup: Deletes ONLY actors located inside the specified folder (e.g. "AI test").
+   * NEVER deletes any actors outside of this folder.
    *
-   * @param {string} userName Target user name (defaults to "Brad")
    * @param {string} folderName Target folder name (defaults to "AI test")
    * @returns {Promise<number>} Number of actors deleted
    */
-  static async cleanTestActors(userName = "Brad", folderName = "AI test") {
-    const targetUser = game.users.find(u => u.name.toLowerCase() === userName.toLowerCase());
+  static async cleanTestActors(folderName = "AI test") {
     const folder = game.folders.find(f => f.type === "Actor" && f.name.toLowerCase() === folderName.toLowerCase());
+    if (!folder) return 0;
 
-    const actorsToDelete = game.actors.filter(a => {
-      // Check folder match
-      if (folder && a.folder?.id === folder.id) return true;
+    const actorsInFolder = game.actors.filter(a => a.folder?.id === folder.id);
+    console.log(`CPR CharGen Clean | Found ${actorsInFolder.length} actors strictly in folder "${folder.name}" to delete...`);
 
-      // Check name pattern matches for test actors
-      const isTestName = a.name === "V" || a.name.startsWith("V ") || a.name.startsWith("V") && a.name.length <= 3 || a.name.startsWith("Streetrat Solo") || a.name.startsWith("test");
-      if (isTestName) {
-        if (targetUser && a.testUserPermission(targetUser, "OWNER")) return true;
-        if (game.user.isGM) return true;
-      }
-      return false;
-    });
-
-    console.log(`CPR CharGen Clean | Found ${actorsToDelete.length} test actors to delete...`);
-    for (const a of actorsToDelete) {
+    for (const a of actorsInFolder) {
       try {
-        console.log(`CPR CharGen Clean | Deleting actor "${a.name}" (${a.id})...`);
+        console.log(`CPR CharGen Clean | Deleting "${a.name}" (${a.id}) from folder "${folder.name}"...`);
         await a.delete();
       } catch (err) {
-        console.warn(`CPR CharGen Clean | Could not delete actor "${a.name}":`, err);
+        console.warn(`CPR CharGen Clean | Could not delete "${a.name}":`, err);
       }
     }
 
-    ui.notifications.info(`Cleaned up ${actorsToDelete.length} test actors!`);
-    return actorsToDelete.length;
+    ui.notifications.info(`Cleaned up ${actorsInFolder.length} actors from "${folder.name}".`);
+    return actorsInFolder.length;
   }
 
   /**
-   * Automated Test Runner:
-   * 1. Cleans out any existing test actors from the "AI test" folder and Brad account.
-   * 2. Generates a fresh Streetrat Solo under Brad in "AI test".
-   * 3. Performs a complete validation audit.
-   *
-   * @param {string} userName Target user name (defaults to "Brad")
-   * @param {string} folderName Target folder name (defaults to "AI test")
-   * @returns {Promise<Object>} Detailed audit report
+   * Create and audit a single character role
    */
-  static async testCreateSolo(userName = "Brad", folderName = "AI test") {
-    console.log(`%c=== STARTING CPR CHARGEN TEST: Streetrat Solo for ${userName} in "${folderName}" ===`, "color: #00f0ff; font-weight: bold;");
+  static async testCreateSingleRole(roleKey = "solo", folder = null, targetUser = null) {
+    const roleDef = CPR_ROLES[roleKey] || CPR_ROLES.solo;
+    const user = targetUser || game.users.find(u => u.name.toLowerCase() === "brad") || game.user;
 
-    // 1. Locate or create folder
-    let folder = game.folders.find(f => f.type === "Actor" && f.name.toLowerCase() === folderName.toLowerCase());
-    if (!folder) {
-      folder = await Folder.create({
-        name: folderName,
-        type: "Actor",
-        color: "#ff003c"
-      });
-      console.log(`CPR CharGen Test | Created Folder "${folder.name}" (${folder.id})`);
-    }
-
-    // 2. Locate target user
-    const targetUser = game.users.find(u => u.name.toLowerCase() === userName.toLowerCase()) || game.user;
-    console.log(`CPR CharGen Test | Target User: "${targetUser.name}" (${targetUser.id})`);
-
-    // 3. Clear out existing test actors from folder first
-    await this.cleanTestActors(userName, folderName);
-
-    // 4. Build Streetrat Solo configuration
-    const soloRole = CPR_ROLES.solo;
     const testData = {
-      name: `Streetrat Solo (${targetUser.name})`,
-      role: "solo",
-      folder: folder.id,
-      ownerId: targetUser.id,
-      stats: soloRole.statTemplates[0],
-      skills: soloRole.skills,
-      chosenWeapons: ["Assault Rifle", "Very Heavy Pistol"],
-      chosenCyberware: ["Neural Link", "Interface Plugs", "Subdermal Armor"],
+      name: `Streetrat ${roleDef.name} (${user.name})`,
+      role: roleKey,
+      folder: folder ? folder.id : null,
+      ownerId: user.id,
+      stats: roleDef.statTemplates[0],
+      skills: roleDef.skills,
+      chosenWeapons: roleDef.weaponChoices ? roleDef.weaponChoices.map(wc => wc.options[0]) : [],
+      chosenCyberware: roleDef.baseCyberware || [],
       lifepath: {
         culturalOrigin: "North American (English)",
         personality: "Focused, disciplined, and calm",
@@ -536,68 +526,77 @@ export class CPRCharGenActor {
         enemy: { who: "Vortex (Maelstrom)", cause: "Stole a prototype cyberware crate" },
         tragicLove: "Lover died in an Arasaka orbital strike during the 4th Corporate War"
       },
-      backstory: "<p>A battle-tested street soldier operating out of the Heywood district.</p>",
-      startingCash: 500
+      backstory: `<p>A battle-tested street ${roleDef.name} operating out of Night City.</p>`,
+      startingCash: roleKey === "exec" ? 1000 : (roleKey === "fixer" ? 800 : 500)
     };
 
-    // 5. Instantiate Actor
     const actor = await this.createActor(testData);
 
-    // 6. Perform Comprehensive Sheet Audit
-    const audit = {
-      actorId: actor.id,
+    // Audit Report
+    const report = {
+      role: roleDef.name,
       name: actor.name,
-      folder: actor.folder?.name,
-      owner: targetUser.name,
-      hasOwnership: actor.testUserPermission(targetUser, "OWNER"),
-      stats: {
-        int: actor.system.stats.int.value,
-        ref: actor.system.stats.ref.value,
-        dex: actor.system.stats.dex.value,
-        tech: actor.system.stats.tech.value,
-        cool: actor.system.stats.cool.value,
-        will: actor.system.stats.will.value,
-        luck: actor.system.stats.luck.value,
-        move: actor.system.stats.move.value,
-        body: actor.system.stats.body.value,
-        emp: actor.system.stats.emp.value
-      },
-      derivedStats: {
-        hp: `${actor.system.derivedStats.hp.value}/${actor.system.derivedStats.hp.max}`,
-        humanity: `${actor.system.derivedStats.humanity.value}/${actor.system.derivedStats.humanity.max}`
-      },
-      totalSkillsCount: actor.itemTypes.skill.length,
+      actorId: actor.id,
+      statsPassed: actor.system.stats.int.value === testData.stats.int && actor.system.stats.ref.value === testData.stats.ref,
+      skillsCount: actor.itemTypes.skill.length,
       allocatedSkillsPassed: 0,
-      allocatedSkillsTotal: Object.keys(soloRole.skills).length,
-      allocatedSkillsDetails: {},
-      roleAttached: actor.itemTypes.role.map(r => `${r.name} (Rank ${r.system.rank})`),
-      weapons: actor.itemTypes.weapon.map(w => `${w.name} (${w.system.equipped})`),
-      armors: actor.itemTypes.armor.map(a => `${a.name} (${a.system.equipped})`),
-      cyberware: actor.itemTypes.cyberware.map(c => `${c.name} (${c.system.equipped})`),
-      installedCyberwareList: actor.system.installedItems?.list || [],
-      gear: actor.itemTypes.gear.map(g => `${g.name} (${g.system.equipped})`),
-      cash: actor.system.wealth.cash
+      allocatedSkillsTotal: Object.keys(roleDef.skills).length,
+      roleRank: actor.itemTypes.role[0]?.system.rank || 0,
+      weapons: actor.itemTypes.weapon.map(w => w.name).join(", "),
+      bodyArmor: actor.itemTypes.armor.find(a => a.name.includes("Body"))?.name || "MISSING",
+      headArmor: actor.itemTypes.armor.find(a => a.name.includes("Head"))?.name || "MISSING",
+      cyberwareCount: actor.itemTypes.cyberware.length
     };
 
-    // Verify each allocated skill rank
-    for (const [sKey, expectedRank] of Object.entries(soloRole.skills)) {
+    for (const [sKey, expectedRank] of Object.entries(roleDef.skills)) {
       const cleanTarget = this.cleanKey(sKey);
       const match = actor.itemTypes.skill.find(s => {
         const sClean = this.cleanKey(s.name);
         return sClean === cleanTarget || sClean.includes(cleanTarget) || cleanTarget.includes(sClean);
       });
-      const actualRank = match ? match.system.level : 0;
-      const pass = actualRank === expectedRank;
-      if (pass) audit.allocatedSkillsPassed++;
-      audit.allocatedSkillsDetails[sKey] = {
-        expected: expectedRank,
-        actual: actualRank,
-        passed: pass
-      };
+      if (match && match.system.level === expectedRank) {
+        report.allocatedSkillsPassed++;
+      }
     }
 
-    console.log("%c=== CPR CHARGEN TEST AUDIT REPORT ===", "color: #00ff66; font-weight: bold;", audit);
-    ui.notifications.info(`AI Test Complete: "${actor.name}" created under ${targetUser.name} in folder "${folderName}"!`);
-    return audit;
+    return report;
+  }
+
+  /**
+   * Automated Batch Test: Generates 5 distinct roles in the "AI test" folder and prints an audit table.
+   *
+   * @param {Array<string>} roles Array of role keys to test (defaults to 5 core roles)
+   * @param {string} folderName Target folder name (defaults to "AI test")
+   * @returns {Promise<Array<Object>>} Complete audit matrix
+   */
+  static async testCreateBatch(roles = ["solo", "netrunner", "tech", "medtech", "rockerboy"], folderName = "AI test") {
+    console.log(`%c=== CPR CHARGEN BATCH TEST: Generating ${roles.length} Characters in "${folderName}" ===`, "color: #00f0ff; font-weight: bold;");
+
+    // 1. Strictly clean folder first
+    await this.cleanTestActors(folderName);
+
+    // 2. Find or create folder
+    let folder = game.folders.find(f => f.type === "Actor" && f.name.toLowerCase() === folderName.toLowerCase());
+    if (!folder) {
+      folder = await Folder.create({
+        name: folderName,
+        type: "Actor",
+        color: "#ff003c"
+      });
+    }
+
+    const user = game.users.find(u => u.name.toLowerCase() === "brad") || game.user;
+    const auditResults = [];
+
+    for (const rKey of roles) {
+      console.log(`CPR CharGen Batch | Generating Streetrat ${rKey.toUpperCase()}...`);
+      const res = await this.testCreateSingleRole(rKey, folder, user);
+      auditResults.push(res);
+    }
+
+    console.log("%c=== CPR CHARGEN BATCH AUDIT RESULTS ===", "color: #00ff66; font-weight: bold;");
+    console.table(auditResults);
+    ui.notifications.info(`AI Batch Test Complete: Generated ${auditResults.length} test characters in "${folderName}"!`);
+    return auditResults;
   }
 }

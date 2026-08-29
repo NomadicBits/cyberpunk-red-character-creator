@@ -14,8 +14,9 @@ Hooks.once("init", () => {
   // Expose global API
   globalThis.CPRCharGen = {
     createActor: (data) => CPRCharGenActor.createActor(data),
-    testCreateSolo: (user, folder) => CPRCharGenActor.testCreateSolo(user, folder),
-    cleanTestActors: (user, folder) => CPRCharGenActor.cleanTestActors(user, folder)
+    testCreateSolo: (user, folder) => CPRCharGenActor.testCreateSingleRole("solo", null, user),
+    testCreateBatch: (roles, folder) => CPRCharGenActor.testCreateBatch(roles, folder),
+    cleanTestActors: (folder) => CPRCharGenActor.cleanTestActors(folder)
   };
 
   // Register Settings
@@ -56,15 +57,19 @@ Hooks.once("ready", () => {
   console.log("CPR CharGen | System Ready. AI Character Creator Online.");
 });
 
-// Chat Commands: /cpr-char, /cpr-chargen, /create-char, /cpr-test, /chargen-test, /cpr-clean, /chargen-clean
+// Chat Commands: /cpr-char, /cpr-chargen, /create-char, /cpr-test, /cpr-batch, /cpr-clean
 Hooks.on("chatMessage", (chatLog, messageText, chatData) => {
   const text = messageText.trim();
   if (text === "/cpr-clean" || text === "/chargen-clean") {
-    CPRCharGenActor.cleanTestActors("Brad", "AI test");
+    CPRCharGenActor.cleanTestActors("AI test");
+    return false;
+  }
+  if (text === "/cpr-batch" || text === "/cpr-test5" || text === "/chargen-batch") {
+    CPRCharGenActor.testCreateBatch(["solo", "netrunner", "tech", "medtech", "rockerboy"], "AI test");
     return false;
   }
   if (text === "/cpr-test" || text === "/chargen-test") {
-    CPRCharGenActor.testCreateSolo("Brad", "AI test");
+    CPRCharGenActor.testCreateBatch(["solo"], "AI test");
     return false;
   }
   if (text.startsWith("/cpr-char") || text.startsWith("/cpr-chargen") || text.startsWith("/create-char")) {
@@ -81,8 +86,8 @@ Hooks.on("renderActorDirectory", (app, html, data) => {
       <button type="button" class="cpr-chargen-header-btn" style="background: linear-gradient(135deg, #ff003c 0%, #990022 100%); color: #fff; border: 1px solid #ff003c; font-weight: bold; border-radius: 4px; padding: 4px 6px;">
         <i class="fas fa-user-plus"></i> CPR AI Creator
       </button>
-      <button type="button" class="cpr-chargen-test-btn" style="background: #1a1d29; color: #00f0ff; border: 1px solid #00f0ff; font-weight: bold; border-radius: 4px; padding: 4px 6px; flex: 0 0 auto;" title="Run Automated Test: Clear folder & Create Streetrat Solo under Brad in 'AI test' folder">
-        <i class="fas fa-vial"></i> AI Test
+      <button type="button" class="cpr-chargen-batch-btn" style="background: #1a1d29; color: #00f0ff; border: 1px solid #00f0ff; font-weight: bold; border-radius: 4px; padding: 4px 6px; flex: 0 0 auto;" title="Run Batch AI Test: Clean 'AI test' folder and generate 5 test roles">
+        <i class="fas fa-vials"></i> Test 5 Roles
       </button>
     </div>
   `);
@@ -91,8 +96,8 @@ Hooks.on("renderActorDirectory", (app, html, data) => {
     new CPRCharGenWizard().render(true);
   });
 
-  btnGroup.find(".cpr-chargen-test-btn").on("click", () => {
-    CPRCharGenActor.testCreateSolo("Brad", "AI test");
+  btnGroup.find(".cpr-chargen-batch-btn").on("click", () => {
+    CPRCharGenActor.testCreateBatch(["solo", "netrunner", "tech", "medtech", "rockerboy"], "AI test");
   });
 
   html.find(".directory-header .header-actions").append(btnGroup);
