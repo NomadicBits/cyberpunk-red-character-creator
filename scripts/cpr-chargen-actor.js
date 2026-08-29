@@ -15,9 +15,11 @@ export class CPRCharGenActor {
   }
 
   /**
-   * Search all available compendiums for matching items
+   * Search all available compendiums for matching items with strict type validation
+   * @param {string} nameToFind Item name to search
+   * @param {string} preferredType Expected Item document type ('role', 'weapon', 'armor', 'cyberware', 'gear', 'program', 'vehicle', 'ammo')
    */
-  static async findCompendiumItem(nameToFind, preferredPackPrefix = "") {
+  static async findCompendiumItem(nameToFind, preferredType = "") {
     if (!nameToFind) return null;
     
     // Clean target by removing common parenthetical tags
@@ -28,46 +30,76 @@ export class CPRCharGenActor {
     const cleanTarget = this.cleanKey(sanitizedName);
     const itemPacks = game.packs.filter(p => p.documentName === "Item");
 
-    // Sort packs: put exact core_<prefix> first, then other <prefix> packs, then rest
+    // Sort packs: put exact core_<type> first, then non-branded, then rest
     itemPacks.sort((a, b) => {
       const aId = a.metadata.id;
       const bId = b.metadata.id;
-      if (preferredPackPrefix) {
-        const aCore = aId === `cyberpunk-red-core.core_${preferredPackPrefix}`;
-        const bCore = bId === `cyberpunk-red-core.core_${preferredPackPrefix}`;
+      if (preferredType) {
+        const aCore = aId === `cyberpunk-red-core.core_${preferredType}` || aId.includes(preferredType);
+        const bCore = bId === `cyberpunk-red-core.core_${preferredType}` || bId.includes(preferredType);
         if (aCore && !bCore) return -1;
         if (!aCore && bCore) return 1;
-
-        const aHasPref = aId.includes(preferredPackPrefix) && !aId.includes("branded");
-        const bHasPref = bId.includes(preferredPackPrefix) && !bId.includes("branded");
-        if (aHasPref && !bHasPref) return -1;
-        if (!aHasPref && bHasPref) return 1;
       }
       return 0;
     });
 
-    // Pass 1: Look for exact clean matches across sorted packs
+    const isBodyArmorSearch = preferredType === "armor" && cleanTarget.includes("body");
+    const isHeadArmorSearch = preferredType === "armor" && cleanTarget.includes("head");
+
+    // Pass 1: Look for exact clean matches across sorted packs with strict type filter
     for (const pack of itemPacks) {
       try {
         const index = await pack.getIndex({ fields: ["type", "name", "system"] });
-        const exactEntry = index.find(i => this.cleanKey(i.name) === cleanTarget);
-        if (exactEntry) {
-          const doc = await pack.getDocument(exactEntry._id);
-          if (doc) return doc.toObject();
+        for (const entry of index) {
+          // Strict Type Guard
+          if (preferredType && entry.type !== preferredType) {
+            // Allow gear / tool overlap
+            if (preferredType === "gear" && (entry.type === "item" || entry.type === "tool")) {
+              // allowed
+            } else {
+              continue;
+            }
+          }
+
+          // Specific Armor Location Guards
+          if (isBodyArmorSearch && entry.name.toLowerCase().includes("head")) continue;
+          if (isHeadArmorSearch && entry.name.toLowerCase().includes("body")) continue;
+
+          if (this.cleanKey(entry.name) === cleanTarget) {
+            const doc = await pack.getDocument(entry._id);
+            if (doc) return doc.toObject();
+          }
         }
       } catch (e) {
         // Continue searching other packs
       }
     }
 
-    // Pass 2: Look for substring matches across sorted packs (preferring closest length)
+    // Pass 2: Substring matching with strict type filter
     for (const pack of itemPacks) {
       try {
         const index = await pack.getIndex({ fields: ["type", "name", "system"] });
-        const matches = index.filter(i => {
-          const cName = this.cleanKey(i.name);
-          return cName.includes(cleanTarget) || cleanTarget.includes(cName);
-        });
+        const matches = [];
+
+        for (const entry of index) {
+          // Strict Type Guard
+          if (preferredType && entry.type !== preferredType) {
+            if (preferredType === "gear" && (entry.type === "item" || entry.type === "tool")) {
+              // allowed
+            } else {
+              continue;
+            }
+          }
+
+          // Specific Armor Location Guards
+          if (isBodyArmorSearch && entry.name.toLowerCase().includes("head")) continue;
+          if (isHeadArmorSearch && entry.name.toLowerCase().includes("body")) continue;
+
+          const cName = this.cleanKey(entry.name);
+          if (cName.includes(cleanTarget) || cleanTarget.includes(cName)) {
+            matches.push(entry);
+          }
+        }
 
         if (matches.length > 0) {
           matches.sort((a, b) => Math.abs(a.name.length - sanitizedName.length) - Math.abs(b.name.length - sanitizedName.length));
@@ -110,7 +142,7 @@ export class CPRCharGenActor {
         ownership[game.user.id] = 3;
       }
 
-      // 1. Create Base Actor with authentic Cyberpunk RED Mystery Man icon and prototype token
+      // 1. Create Base Actor
       const defaultIcon = "systems/cyberpunk-red-core/icons/compendium/default/Default_CPR_Mystery_Man.svg";
       const baseActorData = {
         name: charData.name || "Night City Edge",
@@ -133,12 +165,13 @@ export class CPRCharGenActor {
       const actor = await Actor.create(baseActorData);
       console.log(`CPR CharGen | Base Actor created: ${actor.name} (${actor.id})`);
 
-      // 2. Ensure ALL 66 Core Skills are present on the actor
-      const existingSkills = actor.itemTypes.skill || [];
-      if (existingSkills.length < 50) {
-        console.log(`CPR CharGen | Seeding all 66 official core skills onto ${actor.name}...`);
+      // 2. Guarantee ALL 66 Core Skills are present on the actor
+      let currentSkills = actor.itemTypes.skill || [];
+      if (currentSkills.length < 50) {
+        console.log(`CPR CharGen | Seeding complete 66 core skill set onto ${actor.name}...`);
         const skillsToCreate = CPR_CORE_SKILLS.map(s => foundry.utils.duplicate(s));
-        await actor.createEmbeddedDocuments("Item", skillsToCreate);
+        const createdDocs = await actor.createEmbeddedDocuments("Item", skillsToCreate);
+        console.log(`CPR CharGen | Embedded ${createdDocs.length} skills onto ${actor.name}`);
       }
 
       // 3. Apply Stats, Vitals, Lifepath, and Wealth
@@ -193,7 +226,7 @@ export class CPRCharGenActor {
       // 4. Update Skill Ranks
       await this.applySkillRanks(actor, charData.skills || roleDef.skills);
 
-      // 5. Attach Role Item (cleaning any old role duplicates first)
+      // 5. Attach Role Item
       await this.attachRole(actor, roleDef);
 
       // 6. Attach Weapons, Armor, Cyberware, Programs, and Gear
@@ -298,7 +331,7 @@ export class CPRCharGenActor {
       await actor.deleteEmbeddedDocuments("Item", existingRoles.map(r => r.id));
     }
 
-    const roleDoc = await this.findCompendiumItem(roleDef.name, "roles");
+    const roleDoc = await this.findCompendiumItem(roleDef.name, "role");
     if (roleDoc) {
       if (roleDoc.system) {
         roleDoc.system.rank = 4;
@@ -320,7 +353,7 @@ export class CPRCharGenActor {
       : (roleDef.weaponChoices ? roleDef.weaponChoices.map(wc => wc.options[0]) : []);
 
     for (const wName of weaponsToFind) {
-      const wDoc = await this.findCompendiumItem(wName, "weapons");
+      const wDoc = await this.findCompendiumItem(wName, "weapon");
       if (wDoc) {
         if (wDoc.system && "equipped" in wDoc.system) {
           wDoc.system.equipped = "equipped";
@@ -329,8 +362,8 @@ export class CPRCharGenActor {
       }
     }
 
-    // 2. Armor (Light Armorjack Body & Head SP 11 - Exactly ONE of each)
-    const bodyArmor = await this.findCompendiumItem("Light Armorjack (Body)", "armor") || await this.findCompendiumItem("Light Armorjack Body", "armor") || await this.findCompendiumItem("Light Armorjack", "armor");
+    // 2. Armor (Light Armorjack Body & Head SP 11 - Exactly ONE Body and ONE Head)
+    const bodyArmor = await this.findCompendiumItem("Light Armorjack (Body)", "armor") || await this.findCompendiumItem("Light Armorjack Body", "armor");
     if (bodyArmor) {
       if (bodyArmor.system && "equipped" in bodyArmor.system) {
         bodyArmor.system.equipped = "equipped";
@@ -364,12 +397,12 @@ export class CPRCharGenActor {
     // 4. Programs (Netrunner)
     if (roleDef.deckPrograms && Array.isArray(roleDef.deckPrograms)) {
       for (const pName of roleDef.deckPrograms) {
-        const pDoc = await this.findCompendiumItem(pName, "programs");
+        const pDoc = await this.findCompendiumItem(pName, "program");
         if (pDoc) itemsToAdd.push(pDoc);
       }
     }
 
-    // 5. Gear & Instruments & Vehicles & Ammo (Strictly filter out any armor duplicates)
+    // 5. Gear & Instruments & Vehicles & Ammo (Strictly gear/item type, skip armor)
     const gearToFind = [...(roleDef.gear || [])];
     if (charData.chosenVehicle) gearToFind.push(charData.chosenVehicle);
     if (charData.chosenInstrument) gearToFind.push(charData.chosenInstrument);
@@ -379,8 +412,8 @@ export class CPRCharGenActor {
       if (gName.toLowerCase().includes("armorjack") || gName.toLowerCase().includes("armor") || gName.toLowerCase().includes("helmet")) continue;
       
       const isAmmo = gName.toLowerCase().includes("ammo");
-      const prefPack = isAmmo ? "ammo" : "gear";
-      const gDoc = await this.findCompendiumItem(gName, prefPack);
+      const prefType = isAmmo ? "ammo" : "gear";
+      const gDoc = await this.findCompendiumItem(gName, prefType);
       if (gDoc) {
         if (gDoc.system && "equipped" in gDoc.system) {
           gDoc.system.equipped = "carried";
